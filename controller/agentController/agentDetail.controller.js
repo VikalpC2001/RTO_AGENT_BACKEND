@@ -1,8 +1,9 @@
 const mysql = require('mysql');
 const pool = require('../../database');
+const { generateToken } = require('../../utils/genrateToken');
 
 const getAgentDetails = async(req,res) => {
-    const sql_querry_getdetails = "SELECT * FROM agent_details";
+    const sql_querry_getdetails = `SELECT * FROM agent_details`;
     pool.query(sql_querry_getdetails,(err,data)=>{
         if(err) return res.send(err)
         return res.json(data)
@@ -22,10 +23,20 @@ const addAgentDetails = async(req,res) => {
         agentState          : req.body.agentState,
         agentPincode        : req.body.agentPincode,
         agentMobileNumber   : req.body.agentMobileNumber,
-        agentEmailId        : req.body.agentEmailId
+        agentEmailId        : req.body.agentEmailId,
+        agentPassword       : req.body.agentPassword,
+        isAdminrights       : req.body.isAdminrights
     }
-    const sql_querry_adddetails = `INSERT INTO agent_details (agentFirstName, agentMiddleName, agentLastName, agentGender, agentBirthDate, agentAddressLine1, agentAddressLine2, agentCity, agentState, agentPincode, agentMobileNumber, agentEmailId) 
-                                   VALUES ('${data.agentFirstName}','${data.agentMiddleName}','${data.agentLastName}','${data.agentGender}','${data.agentBirthDate}','${data.agentAddressLine1}','${data.agentAddressLine2}','${data.agentCity}','${data.agentState}','${data.agentPincode}','${data.agentMobileNumber}','${data.agentEmailId}')`;
+    const sql_querry_adddetails = `INSERT INTO agent_details (agentFirstName, agentMiddleName, agentLastName, 
+                                                              agentGender, agentBirthDate, agentAddressLine1, 
+                                                              agentAddressLine2, agentCity, agentState, 
+                                                              agentPincode, agentMobileNumber, agentEmailId, 
+                                                              agentPassword, isAdminrights) 
+                                   VALUES ('${data.agentFirstName}','${data.agentMiddleName}','${data.agentLastName}',
+                                           '${data.agentGender}','${data.agentBirthDate}','${data.agentAddressLine1}',
+                                           '${data.agentAddressLine2}','${data.agentCity}','${data.agentState}',
+                                           '${data.agentPincode}','${data.agentMobileNumber}','${data.agentEmailId}',
+                                           '${data.agentPassword}','${data.isAdminrights}')`;
     pool.query(sql_querry_adddetails,(err,data)=>{
         if(err) return res.json(err)
         return res.json(data)
@@ -58,7 +69,9 @@ const updateAgentDetails = async(req,res) =>{
         agentState          : req.body.agentState ,
         agentPincode        : req.body.agentPincode,
         agentMobileNumber   : req.body.agentMobileNumber ,
-        agentEmailId        : req.body.agentEmailId
+        agentEmailId        : req.body.agentEmailId,
+        agentPassword       : req.body.agentPassword,
+        isAdminrights       : req.body.isAdminrights
     }
     const sql_querry_updatedetails = `UPDATE agent_details SET agentFirstName = '${data.agentFirstName}', 
                                                                agentMiddleName = '${data.agentMiddleName}', 
@@ -71,7 +84,9 @@ const updateAgentDetails = async(req,res) =>{
                                                                agentState = '${data.agentState}',
                                                                agentPincode = '${data.agentPincode}',
                                                                agentMobileNumber = '${data.agentMobileNumber}',
-                                                               agentEmailId = '${data.agentEmailId}'
+                                                               agentEmailId = '${data.agentEmailId}',
+                                                               agentPassword = '${data.agentPassword}',
+                                                               isAdminrights = '${data.isAdminrights}'
                                                                WHERE agentId = '${data.agentId}'`;
     pool.query(sql_querry_updatedetails,(err,data) =>{
         if(err) return res.json(err)
@@ -79,5 +94,34 @@ const updateAgentDetails = async(req,res) =>{
     })
 }
 
+const authUser = async(req,res) =>{
+    const user = {
+        agentEmailId        : req.body.agentEmailId,
+        agentPassword       : req.body.agentPassword
+    }
+    console.log(">>>",user);
+    const sql_querry_authuser = `SELECT * FROM agent_details WHERE agentEmailId = '${user.agentEmailId}'`;
+    pool.query(sql_querry_authuser,(err,data) =>{
+        console.log("<<<",data[0].agentPassword === user.agentPassword,data,user.agentPassword)
+        if(data && data[0].agentPassword == user.agentPassword){
+            res.json({
+                agentId: data[0].agentId,
+                isAdminrights: data[0].isAdminrights,
+                token: generateToken({id:data[0].agentId}), 
+            });
+        }
+        else{
+            res.status(400);
+            res.send("Invalid Email or Password");
+        }
+    })
+}
 
-module.exports = {addAgentDetails , getAgentDetails , removeAgentDetails , updateAgentDetails}
+
+module.exports = {
+                  addAgentDetails, 
+                  getAgentDetails, 
+                  removeAgentDetails, 
+                  updateAgentDetails, 
+                  authUser 
+                }
