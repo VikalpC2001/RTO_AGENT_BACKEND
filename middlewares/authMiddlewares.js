@@ -13,15 +13,15 @@ const protect = asyncHandler(async (req, res, next) => {
       
             //decodes token id
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            console.log("...",decoded.id.id)
-            // req.user = await User.findById(decoded.id).select("-password");
 
             //SQL Code 
             const sql_querry_getdetailsById = `SELECT * FROM agent_details WHERE agentId = ${decoded.id.id}`;
             pool.query(sql_querry_getdetailsById,(err,data)=>{
                 if(err) return res.send(err)
-                if(data){
+                if(data && data[0].isAdminrights == decoded.id.rights){
                     next();
+                }else{
+                    res.status(401);
                 }
             })
           } catch (error) {

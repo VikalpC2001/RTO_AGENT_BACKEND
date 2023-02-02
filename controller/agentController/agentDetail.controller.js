@@ -107,7 +107,7 @@ const authUser = async(req,res) =>{
             res.json({
                 agentId: data[0].agentId,
                 isAdminrights: data[0].isAdminrights,
-                token: generateToken({id:data[0].agentId}), 
+                token: generateToken({id:data[0].agentId,rights:data[0].isAdminrights}), 
             });
         }
         else{
