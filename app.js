@@ -29,7 +29,7 @@ app.use('/agentrouter',agentrouter);
 app.use('/stateCityrouter',stateCityrouter);
 app.use('/dealerrouter',dealerrouter);
 
-// app.use(notFound);
-// app.use(erroHandler); 
+app.use(notFound);
+app.use(erroHandler); 
 //Listen or Enviroment port or 5000
 app.listen(port ,() => console.log(`Connecion suceesfull ${port}`)) 
