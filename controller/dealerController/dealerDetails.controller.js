@@ -84,6 +84,11 @@ const addDealerDetails = async(req,res) =>{
                 dealerWhatsAppNumber    :   req.body.dealerWhatsAppNumber,
                 dealerEmailId           :   req.body.dealerEmailId
             }
+            
+            if(!data.dealerFirstName || !data.dealerLastName || !data.dealerGender || !data.dealerFirmName || !data.dealerFirmAddressLine1 || !data.dealerFirmAddressLine2 || !data.dealerFirmState || !data.dealerFirmCity || !data.dealerFirmPincode || !data.dealerDisplayName || !data.dealerMobileNumber|| !data.dealerWhatsAppNumber) {
+                res.status(401);
+                res.send("Please Fill all the feilds")
+            }else{
             sql_queries_adddetails = `INSERT INTO dealer_details (agentId, dealerFirstName, dealerLastName, 
                                                                   dealerGender, dealerFirmName, dealerFirmAddressLine1, 
                                                                   dealerFirmAddressLine2, dealerFirmState, dealerFirmCity
@@ -97,13 +102,13 @@ const addDealerDetails = async(req,res) =>{
             pool.query(sql_queries_adddetails,(err,data) =>{
                 if(err) return res.send(err);
                 return res.json(data);
-            })
+            })}
         }else{
             res.send("Please Login Firest....!");
         }
     }catch(error){
-        res.send("Please Login Firest.....!");
-        throw new Error('UnsuccessFull',error);
+        res.status(400);
+        res.send("Please Login Firest....>>>.!");
     }                         
 }
 
