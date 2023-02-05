@@ -102,8 +102,8 @@ const authUser = async(req,res) =>{
     console.log(">>>",user);
     const sql_querry_authuser = `SELECT * FROM agent_details WHERE agentEmailId = '${user.agentEmailId}'`;
     pool.query(sql_querry_authuser,(err,data) =>{
-        console.log("<<<",data[0].agentPassword === user.agentPassword,data,user.agentPassword)
-        if(data && data[0].agentPassword == user.agentPassword){
+        // console.log("<<<",data[0].agentPassword === user.agentPassword,data,user.agentPassword)
+        if(data[0] && data[0].agentPassword == user.agentPassword){
             res.json({
                 agentId: data[0].agentId,
                 isAdminrights: data[0].isAdminrights,
