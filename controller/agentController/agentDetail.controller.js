@@ -24,23 +24,28 @@ const addAgentDetails = async(req,res) => {
         agentPincode        : req.body.agentPincode,
         agentMobileNumber   : req.body.agentMobileNumber,
         agentEmailId        : req.body.agentEmailId,
-        agentPassword       : req.body.agentPassword,
-        isAdminrights       : req.body.isAdminrights
+        agentPassword       : req.body.agentPassword ? req.body.agentPassword : "admin",
+        isAdminrights       : req.body.isAdminrights ? req.body.isAdminrights : 0
     }
-    const sql_querry_adddetails = `INSERT INTO agent_details (agentFirstName, agentMiddleName, agentLastName, 
-                                                              agentGender, agentBirthDate, agentAddressLine1, 
-                                                              agentAddressLine2, agentCity, agentState, 
-                                                              agentPincode, agentMobileNumber, agentEmailId, 
-                                                              agentPassword, isAdminrights) 
-                                   VALUES ('${data.agentFirstName}','${data.agentMiddleName}','${data.agentLastName}',
-                                           '${data.agentGender}','${data.agentBirthDate}','${data.agentAddressLine1}',
-                                           '${data.agentAddressLine2}','${data.agentCity}','${data.agentState}',
-                                           '${data.agentPincode}','${data.agentMobileNumber}','${data.agentEmailId}',
-                                           '${data.agentPassword}','${data.isAdminrights}')`;
-    pool.query(sql_querry_adddetails,(err,data)=>{
-        if(err) return res.json(err)
-        return res.json(data)
+    if(data){
+        const sql_querry_adddetails = `INSERT INTO agent_details (agentFirstName, agentMiddleName, agentLastName, 
+                                                                  agentGender, agentBirthDate, agentAddressLine1, 
+                                                                  agentAddressLine2, agentCity, agentState, 
+                                                                  agentPincode, agentMobileNumber, agentEmailId, 
+                                                                  agentPassword, isAdminrights) 
+                                        VALUES ('${data.agentFirstName}','${data.agentMiddleName}','${data.agentLastName}',
+                                        '${data.agentGender}','${data.agentBirthDate}','${data.agentAddressLine1}',
+                                        '${data.agentAddressLine2}','${data.agentCity}','${data.agentState}',
+                                        '${data.agentPincode}','${data.agentMobileNumber}','${data.agentEmailId}',
+                                        '${data.agentPassword}','${data.isAdminrights}')`;
+                                        pool.query(sql_querry_adddetails,(err,data)=>{
+    if(err) return res.json(err)
+    return res.json(data)
     })
+    }else{
+        res.status(400);
+        res.send("Please solwe error")
+    }
 }
 
 const removeAgentDetails = async(req,res) =>{

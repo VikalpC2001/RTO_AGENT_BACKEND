@@ -27,7 +27,7 @@ const getDealerDetailsById = async(req,res) =>{
                                              dealerFirmState, dealerFirmCity, dealerFirmPincode, 
                                              dealerDisplayName, dealerMobileNumber, dealerWhatsAppNumber, 
                                              dealerEmailId 
-                                             FROM dealer_details WHERE dealerId = ${data.dealerId}`;
+                                             FROM dealer_details WHERE dealerId = ${data.dealerId} AND agentId = ${agentId}`;
         pool.query(sql_queries_getdetailsByid,(err,data)=>{
             if(err) return res.send(err);
             return res.json(data);
@@ -52,6 +52,7 @@ const getDealerDetailsByAgentId = async(req,res) =>{
                 return res.json(data);
             })
         }else{
+            res.status(401);
             res.send("Please Login Firest.....!");
         }
     }catch(error){
