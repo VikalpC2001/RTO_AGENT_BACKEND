@@ -3,7 +3,7 @@ const pool = require('../../database');
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
 
-const getVehicleDetail = async(req,res)=>{
+const getVehicleRegistrationDetails = async(req,res)=>{
     try{
         sql_queries_getdetails = `SELECT * FROM vehicle_registration_details`;
         pool.query(sql_queries_getdetails,(data,err) =>{
@@ -15,7 +15,7 @@ const getVehicleDetail = async(req,res)=>{
     }
 }
 
-const getVehicleDetailsById = async(req,res) =>{
+const getVehicleRegistrationDetailsById = async(req,res) =>{
     try{
         const data = {
             vehicleRegistrationId : req.body.vehicleRegistrationId
@@ -36,7 +36,7 @@ const getVehicleDetailsById = async(req,res) =>{
     }   
 }
 
-const getvehicleDetailsByAgentId = async(req,res) =>{
+const getVehicleRegistrationDetailsByAgentId = async(req,res) =>{
 
     try{
         let token;
@@ -68,7 +68,6 @@ const addVehicleRegistrationDetails = async(req,res) =>{
         if(token){
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             const agentId = decoded.id.id;    
-    
             const data = {
                 vehicleRegistrationNumber   :   req.body.vehicleRegistrationNumber,        
                 vehicleChassisNumber        :   req.body.vehicleChassisNumber,        
@@ -100,7 +99,7 @@ const addVehicleRegistrationDetails = async(req,res) =>{
                 policyNumber                :   req.body.policyNumber,                
                 insuranceStartDate          :   new Date(req.body.insuranceStartDate?req.body.insuranceStartDate:"01/01/2001").toISOString().slice(0, 10),          
                 insuranceEndDate            :   new Date(req.body.insuranceEndDate?req.body.insuranceEndDate:"01/01/2001").toISOString().slice(0, 10),            
-                vehicleWorkStatus           :   req.body.vehicleWorkStatus,           
+                vehicleWorkStatus           :   req.body.vehicleWorkStatus ? req.body.vehicleWorkStatus : "Pending For Recipt Upload and Appointment",           
                 comment                     :   req.body.comment                  
             }   
             
@@ -143,9 +142,90 @@ const addVehicleRegistrationDetails = async(req,res) =>{
     }                         
 }
 
+const updateVehicleRegistrationDetails = async(req,res) =>{
+
+    try{
+        const data = {
+                vehicleRegistrationId       :   req.body.vehicleRegistrationId,
+                vehicleRegistrationNumber   :   req.body.vehicleRegistrationNumber,        
+                vehicleChassisNumber        :   req.body.vehicleChassisNumber,        
+                vehicleEngineNumber         :   req.body.vehicleEngineNumber,         
+                vehicleClass                :   req.body.vehicleClass,                
+                vehicleCategory             :   req.body.vehicleCategory,             
+                vehicleMake                 :   req.body.vehicleMake,                 
+                vehicleModel                :   req.body.vehicleModel,                
+                vehicleRegistrationDate     :   new Date(req.body.vehicleRegistrationDate?req.body.vehicleRegistrationDate:"01/01/2001").toISOString().slice(0, 10), 
+                vehicleWorkType             :   req.body.vehicleWorkType,             
+                sellerFirstName             :   req.body.sellerFirstName,             
+                sellerMiddleName            :   req.body.sellerMiddleName,            
+                sellerLastName              :   req.body.sellerLastName,              
+                sellerAddress               :   req.body.sellerAddress,               
+                buyerFirstName              :   req.body.buyerFirstName,                 
+                buyerMiddleName             :   req.body.buyerMiddleName,             
+                buyerLastName               :   req.body.buyerLastName,                   
+                buyerAddressLine1           :   req.body.buyerAddressLine1,           
+                buyerAddressLine2           :   req.body.buyerAddressLine2,          
+                buyerAddressLine3           :   req.body.buyerAddressLine3,                   
+                buyerState                  :   req.body.buyerState,                  
+                buyerCity                   :   req.body.buyerCity,                   
+                buyerPincode                :   req.body.buyerPincode,                
+                clientWhatsAppNumber        :   req.body.clientWhatsAppNumber,        
+                serviceAuthority            :   req.body.serviceAuthority,            
+                dealerId                    :   req.body.dealerId,                    
+                insuranceType               :   req.body.insuranceType,               
+                insuranceCompanyNameId      :   req.body.insuranceCompanyNameId,      
+                policyNumber                :   req.body.policyNumber,                
+                insuranceStartDate          :   new Date(req.body.insuranceStartDate?req.body.insuranceStartDate:"01/01/2001").toISOString().slice(0, 10),          
+                insuranceEndDate            :   new Date(req.body.insuranceEndDate?req.body.insuranceEndDate:"01/01/2001").toISOString().slice(0, 10),            
+                vehicleWorkStatus           :   req.body.vehicleWorkStatus,           
+                comment                     :   req.body.comment                  
+        }   
+        const sql_querry_updatedetails = `UPDATE vehicle_registration_details SET  vehicleRegistrationNumber = '${data.vehicleRegistrationNumber}',
+                                                                                   vehicleChassisNumber = '${data.vehicleChassisNumber}',   
+                                                                                   vehicleEngineNumber = '${data.vehicleEngineNumber}',      
+                                                                                   vehicleClass = '${data.vehicleClass}',            
+                                                                                   vehicleCategory = '${data.vehicleCategory}',          
+                                                                                   vehicleMake = '${data.vehicleMake}',              
+                                                                                   vehicleModel = '${data.vehicleModel}',             
+                                                                                   vehicleRegistrationDate = '${data.vehicleRegistrationDate}',  
+                                                                                   vehicleWorkType = '${data.vehicleWorkType}',          
+                                                                                   sellerFirstName = '${data.sellerFirstName}',          
+                                                                                   sellerMiddleName = '${data.sellerMiddleName}',         
+                                                                                   sellerLastName = '${data.sellerLastName}',           
+                                                                                   sellerAddress = '${data.sellerAddress}',            
+                                                                                   buyerFirstName = '${data.buyerFirstName}',           
+                                                                                   buyerMiddleName = '${data.buyerMiddleName}',          
+                                                                                   buyerLastName = '${data.buyerLastName}',            
+                                                                                   buyerAddressLine1 = '${data.buyerAddressLine1}',        
+                                                                                   buyerAddressLine2 = '${data.buyerAddressLine2}',        
+                                                                                   buyerAddressLine3 = '${data.buyerAddressLine3}',        
+                                                                                   buyerState = '${data.buyerState}',               
+                                                                                   buyerCity = '${data.buyerCity}',                
+                                                                                   buyerPincode = '${data.buyerPincode}',             
+                                                                                   clientWhatsAppNumber = '${data.clientWhatsAppNumber}',     
+                                                                                   serviceAuthority = '${data.serviceAuthority}',         
+                                                                                   dealerId = '${data.dealerId}',                 
+                                                                                   insuranceType = '${data.insuranceType}',            
+                                                                                   insuranceCompanyNameId = '${data.insuranceCompanyNameId}',   
+                                                                                   policyNumber = '${data.policyNumber}',             
+                                                                                   insuranceStartDate = '${data.insuranceStartDate}',       
+                                                                                   insuranceEndDate = '${data.insuranceEndDate}',         
+                                                                                   vehicleWorkStatus = '${data.vehicleWorkStatus}',        
+                                                                                   comment = '${data.comment}'
+                                                                                   WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}'`;
+        pool.query(sql_querry_updatedetails,(err,data) =>{ 
+            if(err) return res.json(err)
+            return res.json(data)
+        })
+    }catch(error){
+        throw new Error('UnsuccessFull',error);
+    }   
+}
+
 module.exports = { 
-                    getVehicleDetail,
-                    getVehicleDetailsById,
-                    getvehicleDetailsByAgentId,
-                    addVehicleRegistrationDetails
+                    getVehicleRegistrationDetails,
+                    getVehicleRegistrationDetailsById,
+                    getVehicleRegistrationDetailsByAgentId,
+                    addVehicleRegistrationDetails,
+                    updateVehicleRegistrationDetails
                  };

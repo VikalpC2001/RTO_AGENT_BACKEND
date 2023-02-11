@@ -3,10 +3,35 @@ const pool = require('../../database');
 const { generateToken } = require('../../utils/genrateToken');
 
 const getAgentDetails = async(req,res) => {
-    const sql_querry_getdetails = `SELECT * FROM agent_details`;
-    pool.query(sql_querry_getdetails,(err,data)=>{
-        if(err) return res.send(err)
-        return res.json(data)
+
+    console.log('>>>><<<<<',req.query);
+    const page = req.query.page;
+    const numPerPage = req.query.numPerPage;
+    const skip = (page-1) * numPerPage; 
+    const limit = skip + ',' + numPerPage;
+    const sql_querry_getdetails = `SELECT count(*) as numRows FROM agent_details`;
+    pool.query(sql_querry_getdetails,(err, rows, fields)=>{
+        if(err) {
+            console.log("error: ", err);
+            result(err, null);
+        }else{
+            const numRows = rows[0].numRows;
+            const numPages = Math.ceil(numRows / numPerPage);
+            pool.query(`SELECT * FROM agent_details LIMIT ` + limit,(err, rows, fields) =>{
+                if(err) {
+                    console.log("error: ", err);
+                    res.send(err, null);
+                }else{
+                    console.log(rows)
+                    console.log(numRows);
+                    console.log("Total Page :-",numPages);
+                    return res.send({rows,numRows});
+                    // res.send(null,fields,data,numPages);
+                }
+            });
+        }
+        // if(err) return res.send(err)
+        // return res.json(data)
     })
 }
 
@@ -27,7 +52,12 @@ const addAgentDetails = async(req,res) => {
         agentPassword       : req.body.agentPassword ? req.body.agentPassword : "admin",
         isAdminrights       : req.body.isAdminrights ? req.body.isAdminrights : 0
     }
-    if(data){
+    if(!data.agentFirstName || !data.agentMiddleName || !data.agentLastName || !data.agentGender ||
+       !data.agentBirthDate || !data.agentAddressLine1 || !data.agentAddressLine2 || !data.agentState || !data.agentCity ||
+       !data.agentPincode || !data.agentMobileNumber || !data.agentEmailId){
+                res.status(400);
+                res.send("Please Fill all the feilds")
+    }else{
         const sql_querry_adddetails = `INSERT INTO agent_details (agentFirstName, agentMiddleName, agentLastName, 
                                                                   agentGender, agentBirthDate, agentAddressLine1, 
                                                                   agentAddressLine2, agentCity, agentState, 
@@ -38,13 +68,10 @@ const addAgentDetails = async(req,res) => {
                                         '${data.agentAddressLine2}','${data.agentCity}','${data.agentState}',
                                         '${data.agentPincode}','${data.agentMobileNumber}','${data.agentEmailId}',
                                         '${data.agentPassword}','${data.isAdminrights}')`;
-                                        pool.query(sql_querry_adddetails,(err,data)=>{
-    if(err) return res.json(err)
-    return res.json(data)
-    })
-    }else{
-        res.status(400);
-        res.send("Please solwe error")
+        pool.query(sql_querry_adddetails,(err,data)=>{
+        if(err) return res.json(err)
+        return res.json(data)
+        })
     }
 }
 
@@ -114,6 +141,7 @@ const authUser = async(req,res) =>{
                 isAdminrights: data[0].isAdminrights,
                 token: generateToken({id:data[0].agentId,rights:data[0].isAdminrights}), 
             });
+            console.log("??",generateToken({id:data[0].agentId,rights:data[0].isAdminrights}),new Date());
         }
         else{
             res.status(400);

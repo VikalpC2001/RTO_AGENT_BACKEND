@@ -4,9 +4,10 @@ const {protect} = require("../../middlewares/authMiddlewares.js")
 
 const vehicleRegistrationController = require('../../controller/vehicleRegistrationController/vehicleRegister.controller');
 
-router.get('/getVehicleDetail',vehicleRegistrationController.getVehicleDetail);
-router.post('/getVehicleDetailsById',vehicleRegistrationController.getVehicleDetailsById);
-router.post('/getvehicleDetailsByAgentId',protect,vehicleRegistrationController.getvehicleDetailsByAgentId);
+router.get('/getVehicleRegistrationDetails',vehicleRegistrationController.getVehicleRegistrationDetails);
+router.post('/getVehicleRegistrationDetailsById',vehicleRegistrationController.getVehicleRegistrationDetailsById);
+router.post('/getVehicleRegistrationDetailsByAgentId',protect,vehicleRegistrationController.getVehicleRegistrationDetailsByAgentId);
 router.post('/addVehicleRegistrationDetails',protect,vehicleRegistrationController.addVehicleRegistrationDetails);
+router.post('/updateVehicleRegistrationDetails',protect,vehicleRegistrationController.updateVehicleRegistrationDetails);
 
 module.exports = router;
