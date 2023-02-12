@@ -4,7 +4,7 @@ const { generateToken } = require('../../utils/genrateToken');
 
 const getAgentDetails = async(req,res) => {
 
-    console.log('>>>><<<<<',req.query);
+    // console.log('>>>><<<<<',req.query);
     const page = req.query.page;
     const numPerPage = req.query.numPerPage;
     const skip = (page-1) * numPerPage; 
@@ -22,7 +22,7 @@ const getAgentDetails = async(req,res) => {
                     console.log("error: ", err);
                     res.send(err, null);
                 }else{
-                    console.log(rows)
+                    console.log(rows);
                     console.log(numRows);
                     console.log("Total Page :-",numPages);
                     return res.send({rows,numRows});
@@ -36,6 +36,13 @@ const getAgentDetails = async(req,res) => {
 }
 
 const addAgentDetails = async(req,res) => {
+
+        const uid1 = new Date();
+        const uid2 = (new Date().getTime()).toString(36);
+        console.log("Milisecond Id :-","Agent_" + uid1.getTime() + "_" + uid2);
+        const id = String("Agent_" + uid1.getTime() + "_" + uid2);
+        console.log("...",id);
+
     const data = {
         agentFirstName      : req.body.agentFirstName,
         agentMiddleName     : req.body.agentMiddleName,
@@ -58,12 +65,12 @@ const addAgentDetails = async(req,res) => {
                 res.status(400);
                 res.send("Please Fill all the feilds")
     }else{
-        const sql_querry_adddetails = `INSERT INTO agent_details (agentFirstName, agentMiddleName, agentLastName, 
+        const sql_querry_adddetails = `INSERT INTO agent_details (agentId, agentFirstName, agentMiddleName, agentLastName, 
                                                                   agentGender, agentBirthDate, agentAddressLine1, 
                                                                   agentAddressLine2, agentCity, agentState, 
                                                                   agentPincode, agentMobileNumber, agentEmailId, 
                                                                   agentPassword, isAdminrights) 
-                                        VALUES ('${data.agentFirstName}','${data.agentMiddleName}','${data.agentLastName}',
+                                        VALUES ('${id}','${data.agentFirstName}','${data.agentMiddleName}','${data.agentLastName}',
                                         '${data.agentGender}','${data.agentBirthDate}','${data.agentAddressLine1}',
                                         '${data.agentAddressLine2}','${data.agentCity}','${data.agentState}',
                                         '${data.agentPincode}','${data.agentMobileNumber}','${data.agentEmailId}',
@@ -79,7 +86,7 @@ const removeAgentDetails = async(req,res) =>{
     const data = {
         agentId : req.body.agentId
     }
-    const sql_querry_removedetails = `DELETE FROM agent_details WHERE agentId = ${data.agentId}`;
+    const sql_querry_removedetails = `DELETE FROM agent_details WHERE agentId = '${data.agentId}'`;
     pool.query(sql_querry_removedetails,(err,data)=>{
         if(err) return res.json(err)
         return res.json(data)
@@ -90,17 +97,17 @@ const removeAgentDetails = async(req,res) =>{
 const updateAgentDetails = async(req,res) =>{
     const data = {
         agentId             : req.body.agentId,
-        agentFirstName      : req.body.agentFirstName ,
-        agentMiddleName     : req.body.agentMiddleName ,
-        agentLastName       : req.body.agentLastName ,
-        agentGender         : req.body.agentGender ,
+        agentFirstName      : req.body.agentFirstName,
+        agentMiddleName     : req.body.agentMiddleName,
+        agentLastName       : req.body.agentLastName,
+        agentGender         : req.body.agentGender,
         agentBirthDate      : new Date(req.body.agentBirthDate?req.body.agentBirthDate:"01/01/2001").toISOString().slice(0, 10),
         agentAddressLine1   : req.body.agentAddressLine1,
         agentAddressLine2   : req.body.agentAddressLine2,
-        agentCity           : req.body.agentCity ,
-        agentState          : req.body.agentState ,
+        agentCity           : req.body.agentCity,
+        agentState          : req.body.agentState,
         agentPincode        : req.body.agentPincode,
-        agentMobileNumber   : req.body.agentMobileNumber ,
+        agentMobileNumber   : req.body.agentMobileNumber,
         agentEmailId        : req.body.agentEmailId,
         agentPassword       : req.body.agentPassword,
         isAdminrights       : req.body.isAdminrights
@@ -149,7 +156,6 @@ const authUser = async(req,res) =>{
         }
     })
 }
-
 
 module.exports = {
                   addAgentDetails, 

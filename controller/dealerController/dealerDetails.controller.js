@@ -27,7 +27,7 @@ const getDealerDetailsById = async(req,res) =>{
                                              dealerFirmState, dealerFirmCity, dealerFirmPincode, 
                                              dealerDisplayName, dealerMobileNumber, dealerWhatsAppNumber, 
                                              dealerEmailId 
-                                             FROM dealer_details WHERE dealerId = ${data.dealerId} AND agentId = ${agentId}`;
+                                             FROM dealer_details WHERE dealerId = '${data.dealerId}'`;
         pool.query(sql_queries_getdetailsByid,(err,data)=>{
             if(err) return res.send(err);
             return res.json(data);
@@ -46,7 +46,7 @@ const getDealerDetailsByAgentId = async(req,res) =>{
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             const agentId = decoded.id.id;
 
-            sql_queries_getdetailsByagentid = `SELECT * FROM dealer_details WHERE agentId = ${agentId}`;
+            sql_queries_getdetailsByagentid = `SELECT * FROM dealer_details WHERE agentId = '${agentId}'`;
             pool.query(sql_queries_getdetailsByagentid,(err,data) =>{
                 if(err) return res.send(err);
                 return res.json(data);
@@ -64,6 +64,12 @@ const getDealerDetailsByAgentId = async(req,res) =>{
 const addDealerDetails = async(req,res) =>{
 
     try{
+
+        const uid1 = new Date();
+        const uid2 = (new Date().getTime()).toString(36);
+        console.log("Milisecond Id :-","Agent_" + uid1.getTime() + "_" + uid2);
+        const id = String("Dealer_" + uid1.getTime() + "_" + uid2);
+
         let token;
         token = req.headers.authorization.split(" ")[1];
         if(token){
@@ -90,12 +96,12 @@ const addDealerDetails = async(req,res) =>{
                 res.status(401);
                 res.send("Please Fill all the feilds")
             }else{
-            sql_queries_adddetails = `INSERT INTO dealer_details (agentId, dealerFirstName, dealerLastName, 
+            sql_queries_adddetails = `INSERT INTO dealer_details (dealerId, agentId, dealerFirstName, dealerLastName, 
                                                                   dealerGender, dealerFirmName, dealerFirmAddressLine1, 
                                                                   dealerFirmAddressLine2, dealerFirmState, dealerFirmCity
                                                                   ,dealerFirmPincode, dealerDisplayName, dealerMobileNumber, 
                                                                   dealerWhatsAppNumber, dealerEmailId)
-                                      VALUES ('${agentId}','${data.dealerFirstName}','${data.dealerLastName}',
+                                      VALUES ('${id}','${agentId}','${data.dealerFirstName}','${data.dealerLastName}',
                                               '${data.dealerGender}','${data.dealerFirmName}','${data.dealerFirmAddressLine1}',
                                               '${data.dealerFirmAddressLine2}','${data.dealerFirmState}','${data.dealerFirmCity}',
                                               '${data.dealerFirmPincode}','${data.dealerDisplayName}','${data.dealerMobileNumber}',
@@ -119,7 +125,7 @@ const removeDealerDetails = async(req,res)=>{
         const data = {
             dealerId : req.body.dealerId
         }
-        sql_queries_removedetails = `DELETE FROM dealer_details WHERE dealerId = ${data.dealerId}`;
+        sql_queries_removedetails = `DELETE FROM dealer_details WHERE dealerId = '${data.dealerId}'`;
         pool.query(sql_queries_removedetails,(err,data)=>{
             if(err) return res.send(err);
             return res.json(data);

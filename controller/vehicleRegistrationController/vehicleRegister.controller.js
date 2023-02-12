@@ -61,8 +61,11 @@ const getVehicleRegistrationDetailsByAgentId = async(req,res) =>{
 }
 
 const addVehicleRegistrationDetails = async(req,res) =>{
-
     try{
+        const uid1 = new Date();
+        const uid2 = (new Date().getTime()).toString(36);
+        const id = String("vehicleRegistration_" + uid1.getTime() + "_" + uid2);
+
         let token;
         token = req.headers.authorization.split(" ")[1];
         if(token){
@@ -109,7 +112,7 @@ const addVehicleRegistrationDetails = async(req,res) =>{
                 res.status(401);
                 res.send("Please Fill all the feilds")
             }else{
-            sql_queries_adddetails = `INSERT INTO vehicle_registration_details (agentId, vehicleRegistrationNumber, vehicleChassisNumber, vehicleEngineNumber, 
+            sql_queries_adddetails = `INSERT INTO vehicle_registration_details (vehicleRegistrationId, agentId, vehicleRegistrationNumber, vehicleChassisNumber, vehicleEngineNumber, 
                                                                                 vehicleClass, vehicleCategory, vehicleMake, vehicleModel, 
                                                                                 vehicleRegistrationDate, vehicleWorkType, 
                                                                                 sellerFirstName, sellerMiddleName, sellerLastName, sellerAddress, 
@@ -119,7 +122,7 @@ const addVehicleRegistrationDetails = async(req,res) =>{
                                                                                 serviceAuthority, dealerId, 
                                                                                 insuranceType, insuranceCompanyNameId, policyNumber, insuranceStartDate, insuranceEndDate, 
                                                                                 vehicleWorkStatus, comment)
-                                      VALUES ('${agentId}','${data.vehicleRegistrationNumber}','${data.vehicleChassisNumber}','${data.vehicleEngineNumber}',
+                                      VALUES ('${id}','${agentId}','${data.vehicleRegistrationNumber}','${data.vehicleChassisNumber}','${data.vehicleEngineNumber}',
                                               '${data.vehicleClass}','${data.vehicleCategory}','${data.vehicleMake}','${data.vehicleModel}',
                                               '${data.vehicleRegistrationDate}','${data.vehicleWorkType}',
                                               '${data.sellerFirstName}','${data.sellerMiddleName}','${data.sellerLastName}','${data.sellerAddress}',

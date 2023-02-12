@@ -15,7 +15,7 @@ const protect = asyncHandler(async (req, res, next) => {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
             //SQL Code 
-            const sql_querry_getdetailsById = `SELECT * FROM agent_details WHERE agentId = ${decoded.id.id}`;
+            const sql_querry_getdetailsById = `SELECT * FROM agent_details WHERE agentId = "${decoded.id.id}"`;
             pool.query(sql_querry_getdetailsById,(err,data)=>{
                 if(err) return res.send(err)
                 if(data && data[0].isAdminrights == decoded.id.rights){
