@@ -8,7 +8,7 @@ router.get('/getDealerDetails',protect,dealerController.getDealerDetails);
 router.post('/addDealerDetails',protect,dealerController.addDealerDetails);
 router.get('/getDealerDetailsByAgentId',protect,dealerController.getDealerDetailsByAgentId);
 router.post('/removeDealerDetails',protect,dealerController.removeDealerDetails);
-router.post('/getDealerDetailsById',protect,dealerController.getDealerDetailsById);
+router.get('/getDealerDetailsById',protect,dealerController.getDealerDetailsById);
 router.post('/updateDealerDetails',protect,dealerController.updateDealerDetails);
 
 module.exports = router;

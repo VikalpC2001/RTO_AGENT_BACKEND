@@ -145,6 +145,22 @@ const addVehicleRegistrationDetails = async(req,res) =>{
     }                         
 }
 
+const removeVehicleRegistrationDetails = async(req,res)=>{
+
+    try{
+        const data = {
+            vehicleRegistrationId : req.body.vehicleRegistrationId
+        }
+        sql_queries_removedetails = `DELETE FROM vehicle_registration_details WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}'`;
+        pool.query(sql_queries_removedetails,(err,data)=>{
+            if(err) return res.send(err);
+            return res.json(data);
+        })
+    }catch(error){
+        throw new Error('UnsuccessFull',error);
+    }                      
+}
+
 const updateVehicleRegistrationDetails = async(req,res) =>{
 
     try{
@@ -230,5 +246,6 @@ module.exports = {
                     getVehicleRegistrationDetailsById,
                     getVehicleRegistrationDetailsByAgentId,
                     addVehicleRegistrationDetails,
+                    removeVehicleRegistrationDetails,
                     updateVehicleRegistrationDetails
                  };

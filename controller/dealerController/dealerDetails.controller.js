@@ -6,9 +6,11 @@ const asyncHandler = require("express-async-handler");
 const getDealerDetails = async(req,res) =>{
 
     try{
-        sql_queries_getdetails = `SELECT * FROM dealer_details`;
+        const search = req.body.search;
+        sql_queries_getdetails = `SELECT * FROM dealer_details;`;
         pool.query(sql_queries_getdetails,(err,data)=>{
         if(err) return res.send(err);
+        console.log(">>>>",data[1]);  
         return res.json(data);
     })
     }catch(error){
@@ -19,18 +21,43 @@ const getDealerDetails = async(req,res) =>{
 const getDealerDetailsById = async(req,res) =>{
 
     try{
+        const page = req.query.page;
+        const numPerPage = req.query.numPerPage;
+        const skip = (page-1) * numPerPage; 
+        const limit = skip + ',' + numPerPage;
         const data = {
-            dealerId : req.body.dealerId
+            dealerId : req.query.dealerId
         }
-        sql_queries_getdetailsByid = `SELECT dealerFirstName, dealerLastName, dealerGender, 
-                                             dealerFirmName, dealerFirmAddressLine1, dealerFirmAddressLine2, 
-                                             dealerFirmState, dealerFirmCity, dealerFirmPincode, 
-                                             dealerDisplayName, dealerMobileNumber, dealerWhatsAppNumber, 
-                                             dealerEmailId 
-                                             FROM dealer_details WHERE dealerId = '${data.dealerId}'`;
-        pool.query(sql_queries_getdetailsByid,(err,data)=>{
-            if(err) return res.send(err);
-            return res.json(data);
+        sql_queries_getdetailsByid = `SELECT count(*) as numRows FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}'`;
+        pool.query(sql_queries_getdetailsByid,(err, rows, fields)=>{
+            if(err) {
+                console.log("error: ", err);
+                result(err, null);
+            }else{
+                const numRows = rows[0].numRows;
+                const numPages = Math.ceil(numRows / numPerPage);
+                const sql_Multiplequeries_getdetailsByid = `SELECT dealerId,CONCAT(dealerFirstName," ",dealerLastName) AS dealerName, dealerFirmName, 
+                                                                            CONCAT(dealerFirmAddressLine1,", ",dealerFirmAddressLine2) AS Address, 
+                                                                            CONCAT(city_data.cityName,",",state_data.stateName) AS StateandCity, dealerFirmPincode, 
+                                                                            dealerDisplayName, dealerMobileNumber, dealerWhatsAppNumber, dealerEmailId 
+                                                                            FROM dealer_details 
+                                                                            INNER JOIN state_data ON dealer_details.dealerFirmState = state_data.stateId
+                                                                            INNER JOIN city_data ON dealer_details.dealerFirmCity = city_data.cityId
+                                                                            WHERE dealerId = '${data.dealerId}';
+                                                            SELECT * FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}' LIMIT `
+                pool.query(sql_Multiplequeries_getdetailsByid + limit,(err, rows, fields) =>{
+                    if(err) {
+                        console.log("error: ", err);
+                        res.send(err, null);
+                    }else{
+                        console.log(rows);
+                        console.log(numRows);
+                        console.log("Total Page :-",numPages);
+                        return res.send({rows,numRows});
+                        // res.send(null,fields,data,numPages);
+                    }
+                });
+            }
         })
     }catch(error){
         throw new Error('UnsuccessFull',error);
@@ -40,16 +67,38 @@ const getDealerDetailsById = async(req,res) =>{
 const getDealerDetailsByAgentId = async(req,res) =>{
 
     try{
+        const sort = req.body.sort ? req.body.sort : "dealerDisplayName";
+        const page = req.query.page;
+        const numPerPage = req.query.numPerPage;
+        const skip = (page-1) * numPerPage; 
+        const limit = skip + ',' + numPerPage;
         let token;
         token = req.headers.authorization.split(" ")[1];
         if(token){
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             const agentId = decoded.id.id;
-
-            sql_queries_getdetailsByagentid = `SELECT * FROM dealer_details WHERE agentId = '${agentId}'`;
-            pool.query(sql_queries_getdetailsByagentid,(err,data) =>{
-                if(err) return res.send(err);
-                return res.json(data);
+            const sql_querry_getdetails = `SELECT count(*) as numRows FROM dealer_details WHERE agentId = '${agentId}'`;
+            pool.query(sql_querry_getdetails,(err, rows, fields)=>{
+                if(err) {
+                    console.log("error: ", err);
+                    result(err, null);
+                }else{
+                    const numRows = rows[0].numRows;
+                    const numPages = Math.ceil(numRows / numPerPage);
+                    const sql_sortquery_getdetails = `SELECT dealerId, dealerFirmName,CONCAT(dealerFirstName," ",dealerLastName) AS dealerName, dealerDisplayName, dealerMobileNumber, dealerWhatsAppNumber FROM dealer_details WHERE agentId = '${agentId}' ORDER BY ${sort} LIMIT `
+                    pool.query(sql_sortquery_getdetails + limit,(err, rows, fields) =>{
+                        if(err) {
+                            console.log("error: ", err);
+                            res.send(err, null);
+                        }else{
+                            console.log(rows);
+                            console.log(numRows);
+                            console.log("Total Page :-",numPages);
+                            return res.send({rows,numRows});
+                            // res.send(null,fields,data,numPages);
+                        }
+                    });
+                }
             })
         }else{
             res.status(401);

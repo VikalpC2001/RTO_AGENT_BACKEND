@@ -8,6 +8,7 @@ router.get('/getVehicleRegistrationDetails',vehicleRegistrationController.getVeh
 router.post('/getVehicleRegistrationDetailsById',vehicleRegistrationController.getVehicleRegistrationDetailsById);
 router.post('/getVehicleRegistrationDetailsByAgentId',protect,vehicleRegistrationController.getVehicleRegistrationDetailsByAgentId);
 router.post('/addVehicleRegistrationDetails',protect,vehicleRegistrationController.addVehicleRegistrationDetails);
+router.post('/removeVehicleRegistrationDetails',protect,vehicleRegistrationController.removeVehicleRegistrationDetails);
 router.post('/updateVehicleRegistrationDetails',protect,vehicleRegistrationController.updateVehicleRegistrationDetails);
 
 module.exports = router;
