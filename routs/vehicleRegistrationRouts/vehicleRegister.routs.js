@@ -6,6 +6,7 @@ const vehicleRegistrationController = require('../../controller/vehicleRegistrat
 
 router.get('/getVehicleRegistrationDetails',vehicleRegistrationController.getVehicleRegistrationDetails);
 router.post('/getVehicleRegistrationDetailsById',vehicleRegistrationController.getVehicleRegistrationDetailsById);
+router.get('/getVehicleRegistrationDetailsBydealerId',protect,vehicleRegistrationController.getVehicleRegistrationDetailsBydealerId);
 router.post('/getVehicleRegistrationDetailsByAgentId',protect,vehicleRegistrationController.getVehicleRegistrationDetailsByAgentId);
 router.post('/addVehicleRegistrationDetails',protect,vehicleRegistrationController.addVehicleRegistrationDetails);
 router.post('/removeVehicleRegistrationDetails',protect,vehicleRegistrationController.removeVehicleRegistrationDetails);
