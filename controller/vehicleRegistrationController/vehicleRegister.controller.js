@@ -78,12 +78,11 @@ const getVehicleRegistrationDetailsBydealerId = async(req,res) => {
         }else{
             const numRows = rows[0].numRows;
             const numPages = Math.ceil(numRows / numPerPage);
-            pool.query(`SELECT vehicleRegistrationNumber,
-                                                        // STUFF((SELECT ',' + workName
-                                                        // From rto_work_data AS rwd, work_list AS wl 
-                                                        // WHERE rwd.workId = wl.workId AND vehicle_registration_details.vehicleRegistrationId = wl.vehicleRegistrationId
-                                                        // for XML PATH ('')),1,1,'') as work 
-                                                        FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}' LIMIT ` + limit,(err, rows, fields) =>{
+            pool.query(`SELECT vehicle_registration_details.vehicleRegistrationNumber,vehicle_registration_details.vehicleChassisNumber, GROUP_CONCAT(rto_work_data.workName) AS WorkType,dealer_details.dealerFirmName FROM work_list 
+                                INNER JOIN rto_work_data ON rto_work_data.workId = work_list.workListId
+                                INNER JOIN vehicle_registration_details ON vehicle_registration_details.vehicleRegistrationId = work_list.vehicleRegistrationId
+                                INNER JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
+                                WHERE vehicle_registration_details.dealerId  = '${data.dealerId}' GROUP BY vehicle_registration_details.vehicleRegistrationNumber LIMIT ` + limit,(err, rows, fields) =>{
                 if(err) {
                     console.log("error: ", err);
                     res.send(err, null);
