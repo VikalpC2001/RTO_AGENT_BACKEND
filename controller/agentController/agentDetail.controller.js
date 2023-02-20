@@ -17,7 +17,7 @@ const getAgentDetails = async(req,res) => {
         }else{
             const numRows = rows[0].numRows;
             const numPages = Math.ceil(numRows / numPerPage);
-            pool.query(`SELECT * FROM agent_details LIMIT ` + limit,(err, rows, fields) =>{
+            pool.query(`SELECT agentId, agentFirstName, DATE_FORMAT(agentBirthDate, '%d-%M-%Y')as BirthDate FROM agent_details LIMIT ` + limit,(err, rows, fields) =>{
                 if(err) {
                     console.log("error: ", err);
                     res.send(err, null);

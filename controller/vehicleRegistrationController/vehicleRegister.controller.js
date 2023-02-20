@@ -78,11 +78,11 @@ const getVehicleRegistrationDetailsBydealerId = async(req,res) => {
         }else{
             const numRows = rows[0].numRows;
             const numPages = Math.ceil(numRows / numPerPage);
-            pool.query(`SELECT vehicle_registration_details.vehicleRegistrationNumber,vehicle_registration_details.vehicleChassisNumber, GROUP_CONCAT(rto_work_data.workName) AS WorkType,dealer_details.dealerFirmName FROM work_list 
-                                INNER JOIN rto_work_data ON rto_work_data.workId = work_list.workListId
-                                INNER JOIN vehicle_registration_details ON vehicle_registration_details.vehicleRegistrationId = work_list.vehicleRegistrationId
-                                INNER JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
-                                WHERE vehicle_registration_details.dealerId  = '${data.dealerId}' GROUP BY vehicle_registration_details.vehicleRegistrationNumber LIMIT ` + limit,(err, rows, fields) =>{
+            pool.query(`SELECT vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.workName SEPARATOR ', ') as workType,dealer_details.dealerFirmName FROM vehicle_registration_details
+                               INNER JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
+                               INNER JOIN rto_work_data ON rto_work_data.workId = work_list.workId
+                               INNER JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
+                               WHERE vehicle_registration_details.dealerId  = '${data.dealerId}' GROUP BY work_list.vehicleRegistrationId LIMIT ` + limit,(err, rows, fields) =>{
                 if(err) {
                     console.log("error: ", err);
                     res.send(err, null);
@@ -207,7 +207,6 @@ const addVehicleRegistrationDetails = async(req,res) =>{
                 vehicleMake                          :   req.body.vehicleMake,                 
                 vehicleModel                         :   req.body.vehicleModel,                
                 vehicleRegistrationDate              :   new Date(req.body.vehicleRegistrationDate?req.body.vehicleRegistrationDate:"01/01/2001").toISOString().slice(0, 10), 
-                vehicleWorkType                      :   req.body.vehicleWorkType,
                 currentState                         :   getCurrentState(),
                 nextState                            :   getNextState(),
                 rrf                                  :   isRRF() ? 1 : 0,
@@ -247,14 +246,14 @@ const addVehicleRegistrationDetails = async(req,res) =>{
                 // AlterationofVehicle                  :   req.body.AlterationofVehicle                   
             }   
             if(!data.vehicleRegistrationNumber || !data.vehicleChassisNumber || !data.vehicleEngineNumber || !data.vehicleRegistrationDate || 
-               !data.vehicleWorkType || !data.sellerFirstName || !data.sellerMiddleName || !data.sellerLastName || 
+               !data.sellerFirstName || !data.sellerMiddleName || !data.sellerLastName || 
                !data.sellerAddress || !data.clientWhatsAppNumber || !data.serviceAuthority|| !data.dealerId || !data.vehicleWorkStatus){
                 res.status(401);
                 res.send("Please Fill all the feilds")
             }else{
             sql_queries_adddetails = `INSERT INTO vehicle_registration_details (vehicleRegistrationId, agentId, vehicleRegistrationNumber, vehicleChassisNumber, vehicleEngineNumber, 
                                                                                 vehicleClass, vehicleCategory, vehicleMake, vehicleModel, 
-                                                                                vehicleRegistrationDate, vehicleWorkType, currentState, nextState, RRF ,TTO, Other,
+                                                                                vehicleRegistrationDate, currentState, nextState, RRF ,TTO, Other,
                                                                                 sellerFirstName, sellerMiddleName, sellerLastName, sellerAddress, 
                                                                                 buyerFirstName, buyerMiddleName, buyerLastName,
                                                                                 buyerAddressLine1, buyerAddressLine2, buyerAddressLine3, 
@@ -264,7 +263,7 @@ const addVehicleRegistrationDetails = async(req,res) =>{
                                                                                 vehicleWorkStatus, comment)
                                       VALUES ('${id}','${agentId}','${data.vehicleRegistrationNumber}','${data.vehicleChassisNumber}','${data.vehicleEngineNumber}',
                                               '${data.vehicleClass}','${data.vehicleCategory}','${data.vehicleMake}','${data.vehicleModel}',
-                                              '${data.vehicleRegistrationDate}','${data.vehicleWorkType}','${data.currentState}','${data.nextState}','${data.rrf}','${data.tto}','${data.Other}',
+                                              '${data.vehicleRegistrationDate}','${data.currentState}','${data.nextState}','${data.rrf}','${data.tto}','${data.Other}',
                                               '${data.sellerFirstName}','${data.sellerMiddleName}','${data.sellerLastName}','${data.sellerAddress}',
                                               '${data.buyerFirstName}','${data.buyerMiddleName}','${data.buyerLastName}',
                                               '${data.buyerAddressLine1}','${data.buyerAddressLine2}','${data.buyerAddressLine3}',
