@@ -2,6 +2,10 @@ const mysql = require('mysql');
 const pool = require('../../database');
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
+const { PDFDocument } = require("pdf-lib");
+const { writeFileSync, readFileSync } = require("fs");
+var {google} = require('googleapis');
+const { Readable } =  require('stream');
 
 const getVehicleRegistrationDetails = async(req,res)=>{
     try{
@@ -78,10 +82,9 @@ const getVehicleRegistrationDetailsBydealerId = async(req,res) => {
         }else{
             const numRows = rows[0].numRows;
             const numPages = Math.ceil(numRows / numPerPage);
-            pool.query(`SELECT vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.workName SEPARATOR ', ') as workType,dealer_details.dealerFirmName FROM vehicle_registration_details
+            pool.query(`SELECT vehicle_registration_details.vehicleRegistrationId, vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.workName SEPARATOR ', ') as workType, CONCAT(vehicleMake,"/",vehicleModel) AS vehicleModelMake, clientWhatsAppNumber FROM vehicle_registration_details
                                INNER JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                INNER JOIN rto_work_data ON rto_work_data.workId = work_list.workId
-                               INNER JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
                                WHERE vehicle_registration_details.dealerId  = '${data.dealerId}' GROUP BY work_list.vehicleRegistrationId LIMIT ` + limit,(err, rows, fields) =>{
                 if(err) {
                     console.log("error: ", err);
@@ -100,7 +103,7 @@ const getVehicleRegistrationDetailsBydealerId = async(req,res) => {
     })
 }
 
-const addVehicleRegistrationDetails = async(req,res) =>{
+const addVehicleRegistrationDetails = async(req,res,next) =>{
     try{
         const uid1 = new Date();
         const uid2 = (new Date().getTime()).toString(36);
@@ -276,10 +279,16 @@ const addVehicleRegistrationDetails = async(req,res) =>{
                 if(err) return res.send(err);
                 // return res.json(data);
                 else if(data){
+                    res.locals.id = id
                      sql_queries_addworkdetails = `INSERT INTO work_list (vehicleRegistrationId, workId) VALUES ${isOneData()}`;
                      pool.query(sql_queries_addworkdetails,(err,data)=>{
                         if(err) return res.send(err);
-                        return res.json(data);
+                        // return res.json(data);
+                        if(req.body.TransferofOwnership == true){
+                            next();
+                        }else{
+                            return res.json(data);
+                        }
                      })
                 }    
                 // return res.json(data);
@@ -396,5 +405,5 @@ module.exports = {
                     getVehicleRegistrationDetailsByAgentId,
                     addVehicleRegistrationDetails,
                     removeVehicleRegistrationDetails,
-                    updateVehicleRegistrationDetails
+                    updateVehicleRegistrationDetails,
                  };
