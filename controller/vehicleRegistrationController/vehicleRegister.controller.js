@@ -82,7 +82,7 @@ const getVehicleRegistrationDetailsBydealerId = async(req,res) => {
         }else{
             const numRows = rows[0].numRows;
             const numPages = Math.ceil(numRows / numPerPage);
-            pool.query(`SELECT vehicle_registration_details.vehicleRegistrationId, vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.workName SEPARATOR ', ') as workType, CONCAT(vehicleMake,"/",vehicleModel) AS vehicleModelMake, clientWhatsAppNumber FROM vehicle_registration_details
+            pool.query(`SELECT vehicle_registration_details.vehicleRegistrationId, vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType, CONCAT(vehicleMake,"/",vehicleModel) AS vehicleModelMake, clientWhatsAppNumber FROM vehicle_registration_details
                                INNER JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                INNER JOIN rto_work_data ON rto_work_data.workId = work_list.workId
                                WHERE vehicle_registration_details.dealerId  = '${data.dealerId}' GROUP BY work_list.vehicleRegistrationId LIMIT ` + limit,(err, rows, fields) =>{
@@ -164,7 +164,7 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
             }
         }
 
-        const isOneData = ()=>{
+        const insertWorkList = ()=>{
             var row = []
     
             if(req.body.TransferofOwnership){
@@ -205,8 +205,8 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
                 vehicleRegistrationNumber            :   req.body.vehicleRegistrationNumber,        
                 vehicleChassisNumber                 :   req.body.vehicleChassisNumber,        
                 vehicleEngineNumber                  :   req.body.vehicleEngineNumber,         
-                vehicleClass                         :   req.body.vehicleClass,                
-                vehicleCategory                      :   req.body.vehicleCategory,             
+                vehicleClass                         :   req.body.vehicleClass ? req.body.vehicleClass : null,               
+                vehicleCategory                      :   req.body.vehicleCategory ? req.body.vehicleCategory : null,             
                 vehicleMake                          :   req.body.vehicleMake,                 
                 vehicleModel                         :   req.body.vehicleModel,                
                 vehicleRegistrationDate              :   new Date(req.body.vehicleRegistrationDate?req.body.vehicleRegistrationDate:"01/01/2001").toISOString().slice(0, 10), 
@@ -219,36 +219,27 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
                 sellerMiddleName                     :   req.body.sellerMiddleName,            
                 sellerLastName                       :   req.body.sellerLastName,              
                 sellerAddress                        :   req.body.sellerAddress,               
-                buyerFirstName                       :   req.body.buyerFirstName,                 
-                buyerMiddleName                      :   req.body.buyerMiddleName,             
-                buyerLastName                        :   req.body.buyerLastName,                   
-                buyerAddressLine1                    :   req.body.buyerAddressLine1,           
-                buyerAddressLine2                    :   req.body.buyerAddressLine2,          
-                buyerAddressLine3                    :   req.body.buyerAddressLine3,                   
-                buyerState                           :   req.body.buyerState,                  
-                buyerCity                            :   req.body.buyerCity,                   
-                buyerPincode                         :   req.body.buyerPincode,                
+                buyerFirstName                       :   req.body.buyerFirstName ? req.body.buyerFirstName : '',                 
+                buyerMiddleName                      :   req.body.buyerMiddleName ? req.body.buyerMiddleName : '',           
+                buyerLastName                        :   req.body.buyerLastName ? req.body.buyerLastName : '',               
+                buyerAddressLine1                    :   req.body.buyerAddressLine1 ? req.body.buyerAddressLine1 : '',           
+                buyerAddressLine2                    :   req.body.buyerAddressLine2 ? req.body.buyerAddressLine2 : '',          
+                buyerAddressLine3                    :   req.body.buyerAddressLine3 ? req.body.buyerAddressLine3 : '',                   
+                buyerState                           :   req.body.buyerState ? req.body.buyerState : null,                  
+                buyerCity                            :   req.body.buyerCity ? req.body.buyerCity : null,                   
+                buyerPincode                         :   req.body.buyerPincode ? req.body.buyerPincode : null,                
                 clientWhatsAppNumber                 :   req.body.clientWhatsAppNumber,        
                 serviceAuthority                     :   req.body.serviceAuthority,            
                 dealerId                             :   req.body.dealerId,                    
-                insuranceType                        :   req.body.insuranceType,               
-                insuranceCompanyNameId               :   req.body.insuranceCompanyNameId,      
-                policyNumber                         :   req.body.policyNumber,                
-                insuranceStartDate                   :   new Date(req.body.insuranceStartDate?req.body.insuranceStartDate:"01/01/2001").toISOString().slice(0, 10),          
-                insuranceEndDate                     :   new Date(req.body.insuranceEndDate?req.body.insuranceEndDate:"01/01/2001").toISOString().slice(0, 10),            
+                insuranceType                        :   req.body.insuranceType ? req.body.insuranceType : '',       
+                insuranceCompanyNameId               :   req.body.insuranceCompanyNameId ? req.body.insuranceCompanyNameId : null,
+                policyNumber                         :   req.body.policyNumber ? req.body.policyNumber : '',                
+                insuranceStartDate                   :   new Date(req.body.insuranceStartDate?req.body.insuranceStartDate:null).toISOString().slice(0, 10),          
+                insuranceEndDate                     :   new Date(req.body.insuranceEndDate?req.body.insuranceEndDate:null).toISOString().slice(0, 10),            
                 vehicleWorkStatus                    :   "Pending",           
-                comment                              :   req.body.comment,
-                // TransferofOwnership                  :   req.body.TransferofOwnership,
-                // TerminationofHypothecation           :   req.body.TerminationofHypothecation,
-                // DuplicateRC                          :   req.body.DuplicateRC,
-                // ChangeofAddress                      :   req.body.ChangeofAddress,
-                // AdditionofHypothecation              :   req.body.AdditionofHypothecation,
-                // ContinuationofHypothecation          :   req.body.ContinuationofHypothecation,
-                // RenewalofRegistration                :   req.body.RenewalofRegistration,
-                // ApplicationforNoObjectionCertificate :   req.body.ApplicationforNoObjectionCertificate,
-                // AlterationofVehicle                  :   req.body.AlterationofVehicle                   
+                comment                              :   req.body.comment
             }   
-            if(!data.vehicleRegistrationNumber || !data.vehicleChassisNumber || !data.vehicleEngineNumber || !data.vehicleRegistrationDate || 
+            if(!data.vehicleRegistrationNumber || !data.vehicleChassisNumber || !data.vehicleEngineNumber ||  
                !data.sellerFirstName || !data.sellerMiddleName || !data.sellerLastName || 
                !data.sellerAddress || !data.clientWhatsAppNumber || !data.serviceAuthority|| !data.dealerId || !data.vehicleWorkStatus){
                 res.status(401);
@@ -265,29 +256,30 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
                                                                                 insuranceType, insuranceCompanyNameId, policyNumber, insuranceStartDate, insuranceEndDate, 
                                                                                 vehicleWorkStatus, comment)
                                       VALUES ('${id}','${agentId}','${data.vehicleRegistrationNumber}','${data.vehicleChassisNumber}','${data.vehicleEngineNumber}',
-                                              '${data.vehicleClass}','${data.vehicleCategory}','${data.vehicleMake}','${data.vehicleModel}',
+                                               ${data.vehicleClass},${data.vehicleCategory},'${data.vehicleMake}','${data.vehicleModel}',
                                               '${data.vehicleRegistrationDate}','${data.currentState}','${data.nextState}','${data.rrf}','${data.tto}','${data.Other}',
                                               '${data.sellerFirstName}','${data.sellerMiddleName}','${data.sellerLastName}','${data.sellerAddress}',
                                               '${data.buyerFirstName}','${data.buyerMiddleName}','${data.buyerLastName}',
                                               '${data.buyerAddressLine1}','${data.buyerAddressLine2}','${data.buyerAddressLine3}',
-                                              '${data.buyerState}','${data.buyerCity}','${data.buyerPincode}','${data.clientWhatsAppNumber}',
+                                               ${data.buyerState},${data.buyerCity},${data.buyerPincode},'${data.clientWhatsAppNumber}',
                                               '${data.serviceAuthority}','${data.dealerId}',
-                                              '${data.insuranceType}','${data.insuranceCompanyNameId}','${data.policyNumber}','${data.insuranceStartDate}','${data.insuranceEndDate}',
+                                              '${data.insuranceType}',${data.insuranceCompanyNameId},'${data.policyNumber}','${data.insuranceStartDate}','${data.insuranceEndDate}',
                                               '${data.vehicleWorkStatus}','${data.comment}')`;
+                                              console.log(sql_queries_adddetails);
             pool.query(sql_queries_adddetails,(err,data) =>{
-                console.log(data)
                 if(err) return res.send(err);
                 // return res.json(data);
                 else if(data){
                     res.locals.id = id
-                     sql_queries_addworkdetails = `INSERT INTO work_list (vehicleRegistrationId, workId) VALUES ${isOneData()}`;
+                     sql_queries_addworkdetails = `INSERT INTO work_list (vehicleRegistrationId, workId) VALUES ${insertWorkList()}`;
                      pool.query(sql_queries_addworkdetails,(err,data)=>{
                         if(err) return res.send(err);
                         // return res.json(data);
                         if(req.body.TransferofOwnership == true){
                             next();
                         }else{
-                            return res.json(data);
+                            return res.status(200),
+                                   res.json("Data Inserted Successfully");
                         }
                      })
                 }    

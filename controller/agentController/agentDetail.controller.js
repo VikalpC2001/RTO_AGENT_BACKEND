@@ -77,7 +77,8 @@ const addAgentDetails = async(req,res) => {
                                         '${data.agentPassword}','${data.isAdminrights}')`;
         pool.query(sql_querry_adddetails,(err,data)=>{
         if(err) return res.json(err)
-        return res.json(data)
+        return res.status(200),
+        res.json("User Added Successfully",data);
         })
     }
 }

@@ -4,7 +4,7 @@ var {google} = require('googleapis');
 const { Readable } =  require('stream');
 const pool = require("../../database");
 
-const insertPDFintoDB = async(data)=>{
+const fillPDFdata = async(data)=>{
 
   const details = {
     vehicleRegistrationNumber    : data[0].vehicleRegistrationNumber ? data[0].vehicleRegistrationNumber : '',
@@ -233,21 +233,24 @@ const genrateTTOform = async(req,res) => {
             const vehicleRegistrationId = res.locals.id;
             console.log("><><>>>>>>>",vehicleRegistrationId);
             const sql_querry_getdetailsById = `SELECT UPPER(vehicleRegistrationNumber) AS vehicleRegistrationNumber,
-                                               vehicleChassisNumber, vehicleEngineNumber, UPPER(vehicleMake) AS vehicleMake, UPPER(vehicleModel) AS vehicleModel,
+                                               RIGHT(vehicleChassisNumber,5) AS vehicleChassisNumber,
+                                               RIGHT(vehicleEngineNumber,5) AS vehicleEngineNumber, UPPER(vehicleMake) AS vehicleMake, UPPER(vehicleModel) AS vehicleModel,
                                                UPPER(CONCAT(sellerFirstName," ",sellerMiddleName," ",sellerLastName)) AS sellerName, sellerAddress,
                                                UPPER(CONCAT(buyerFirstName," ",buyerMiddleName," ",buyerLastName)) AS buyerName,
-                                               UPPEr(CONCAT(buyerAddressLine1,", ",buyerAddressLine2,", ",buyerAddressLine3)) AS buyerAddress,
+                                               UPPER(CONCAT(buyerAddressLine1,", ",buyerAddressLine2,", ",buyerAddressLine3)) AS buyerAddress,
                                                CONCAT(state_data.stateName,", ",city_data.cityName," - ",buyerPincode) AS buyerStateCityPincode,
-                                               (city_data.cityName) AS serviceAuthority, (insurance_data.insuranceCompanyName) AS insuranceCompanyName, policyNumber, DATE_FORMAT(insuranceStartDate, '%d-%m-%Y') AS insuranceStartDate, DATE_FORMAT(insuranceEndDate, '%d-%m-%Y') AS insuranceEndDate
+                                               (city_data.cityName) AS serviceAuthority, (insurance_data.insuranceCompanyName) AS insuranceCompanyName, policyNumber, 
+                                               DATE_FORMAT(insuranceStartDate, '%d-%m-%Y') AS insuranceStartDate, DATE_FORMAT(insuranceEndDate, '%d-%m-%Y') AS insuranceEndDate
                                                FROM vehicle_registration_details
                                                INNER JOIN state_data ON state_data.stateId = vehicle_registration_details.buyerState
-                                               INNER JOIN city_data ON city_data.cityId = vehicle_registration_details.buyerCity = vehicle_registration_details.serviceAuthority
+                                               INNER JOIN city_data 
+                                               ON city_data.cityId = vehicle_registration_details.buyerCity = vehicle_registration_details.serviceAuthority
                                                INNER JOIN insurance_data ON insurance_data.insuranceId = vehicle_registration_details.insuranceCompanyNameId
                                                WHERE vehicleRegistrationId = '${vehicleRegistrationId}';`
             pool.query(sql_querry_getdetailsById,(err,data)=>{
               if(err) return res.json(err);
               var temp;
-              insertPDFintoDB(data)
+              fillPDFdata(data)
               .then((rest)=>{
                 //  return res.send(rest)
                  const pdfURL = `https://drive.google.com/uc?export=view&id=${rest}`;
@@ -255,7 +258,8 @@ const genrateTTOform = async(req,res) => {
                                               VALUES ('${vehicleRegistrationId}','${pdfURL}')`
                  pool.query(sql_add_PDF,(err,data)=>{
                    if(err) return res.json(err);
-                   return res.json(data);
+                   return res.status(200),
+                          res.json("Data Inserted Successfully");
                  })
 
               });

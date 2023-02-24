@@ -25,4 +25,12 @@ const getCityDetailswithRTOcode = async(req,res) =>{
     })
 }
 
-module.exports = {getStateDetails , getCityDetails , getCityDetailswithRTOcode};
+const getRTOcityDetails = async(req,res) =>{
+    const sql_querry_getdetails = `SELECT RTOcityId , cityRTOName FROM rto_city_data;`;
+    pool.query(sql_querry_getdetails,(err,data)=>{
+        if(err) return res.send(err)
+        return res.json(data)
+    })
+}
+
+module.exports = {getStateDetails , getCityDetails , getCityDetailswithRTOcode , getRTOcityDetails};

@@ -7,5 +7,6 @@ const stateCityController = require("../../controller/stateAndCityController/sta
 router.get('/getstateDetails',protect,stateCityController.getStateDetails);
 router.get('/getcityDetails',protect,stateCityController.getCityDetails);
 router.get('/getCityDetailswithRTOcode',protect,stateCityController.getCityDetailswithRTOcode);
+router.get('/getRTOcityDetails',protect,stateCityController.getRTOcityDetails);
 
 module.exports = router;

@@ -7,7 +7,7 @@ const getDealerDetails = async(req,res) =>{
 
     try{
         const search = req.body.search;
-        sql_queries_getdetails = `SELECT * FROM dealer_details;`;
+        sql_queries_getdetails = `SELECT * FROM dealer_details`;
         pool.query(sql_queries_getdetails,(err,data)=>{
         if(err) return res.send(err);
         console.log(">>>>",data[1]);  
@@ -135,7 +135,8 @@ const addDealerDetails = async(req,res) =>{
                                               '${data.dealerWhatsAppNumber}','${data.dealerEmailId}')`;
             pool.query(sql_queries_adddetails,(err,data) =>{
                 if(err) return res.send(err);
-                return res.json(data);
+                return res.status(200),
+                res.json("Dealer Inserted Successfully");
             })}
         }else{
             res.send("Please Login Firest....!");
@@ -204,11 +205,35 @@ const updateDealerDetails = async(req,res) =>{
     }   
 }
 
+const ddlDealerByAgentId = async(req,res) =>{
+
+    try{
+        let token;
+        token = req.headers.authorization.split(" ")[1];
+        if(token){
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const agentId = decoded.id.id;
+            const sql_querry_getdetails = `SELECT dealerId,CONCAT(dealerFirmName,'(',dealerDisplayName,')') as dealerDisplayName FROM dealer_details WHERE agentId = '${agentId}'`;
+            pool.query(sql_querry_getdetails,(err,data)=>{
+                if(err) return res.json(err)
+                return res.json(data)
+               })
+        }else{
+            res.status(401);
+            res.send("Please Login Firest.....!");
+        }
+    }catch(error){
+        res.send("Please Login Firest.....!");
+        throw new Error('UnsuccessFull',error);
+    }   
+}
+
 module.exports = { 
                    getDealerDetails, 
                    addDealerDetails, 
                    getDealerDetailsByAgentId, 
                    removeDealerDetails, 
                    getDealerDetailsById,
+                   ddlDealerByAgentId,
                    updateDealerDetails 
                 }

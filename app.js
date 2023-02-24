@@ -5,8 +5,8 @@ const dotenv = require('dotenv').config()
 const agentrouter = require('./routs/agentRouts/agent.routs');
 const dealerrouter = require('./routs/delearRouts/dealer.routs');
 const stateCityrouter = require('./routs/stateAndCityRouts/stateCity.routs');
-const vehicleRegisterrouter = require('./routs/vehicleRegistrationRouts/vehicleRegister.routs');
-const insurancerouter = require('./routs/insuranceRouts/insurance.routs');
+const vehicleRegistrationrouter = require('./routs/vehicleRegistrationRouts/vehicleRegister.routs');
+const ddlVehiclePagerouter = require('./routs/ddlVehiclePageRouts/ddlVehiclePage.routs');
 const cors = require('cors');
 const { notFound, erroHandler } = require('./middlewares/errorMiddleware');
 
@@ -30,8 +30,8 @@ app.use(bodyparser.json())
 app.use('/agentrouter',agentrouter);
 app.use('/stateCityrouter',stateCityrouter);
 app.use('/dealerrouter',dealerrouter);
-app.use('/vehicleRegisterrouter',vehicleRegisterrouter);
-app.use('/insurancerouter',insurancerouter);
+app.use('/vehicleRegistrationrouter',vehicleRegistrationrouter);
+app.use('/ddlVehiclePagerouter',ddlVehiclePagerouter);
 
 app.use(notFound);
 app.use(erroHandler); 
