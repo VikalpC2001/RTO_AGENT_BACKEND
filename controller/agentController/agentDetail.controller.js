@@ -65,20 +65,26 @@ const addAgentDetails = async(req,res) => {
                 res.status(400);
                 res.send("Please Fill all the feilds")
     }else{
-        const sql_querry_adddetails = `INSERT INTO agent_details (agentId, agentFirstName, agentMiddleName, agentLastName, 
-                                                                  agentGender, agentBirthDate, agentAddressLine1, 
-                                                                  agentAddressLine2, agentCity, agentState, 
-                                                                  agentPincode, agentMobileNumber, agentEmailId, 
-                                                                  agentPassword, isAdminrights) 
-                                        VALUES ('${id}','${data.agentFirstName}','${data.agentMiddleName}','${data.agentLastName}',
-                                        '${data.agentGender}','${data.agentBirthDate}','${data.agentAddressLine1}',
-                                        '${data.agentAddressLine2}','${data.agentCity}','${data.agentState}',
-                                        '${data.agentPincode}','${data.agentMobileNumber}','${data.agentEmailId}',
-                                        '${data.agentPassword}','${data.isAdminrights}')`;
-        pool.query(sql_querry_adddetails,(err,data)=>{
-        if(err) return res.json(err)
-        return res.status(200),
-        res.json("User Added Successfully",data);
+        req.body.agentEmailId = pool.query(`SELECT agentEmailId FROM agent_details WHERE agentEmailId= '${data.agentEmailId}'`, function (err, row){
+            if (row && row.length) {
+                return res.send('Email is Already In Use');
+              } else {
+                const sql_querry_adddetails = `INSERT INTO agent_details (agentId, agentFirstName, agentMiddleName, agentLastName,
+                                                                          agentGender, agentBirthDate, agentAddressLine1, 
+                                                                          agentAddressLine2, agentCity, agentState, 
+                                                                          agentPincode, agentMobileNumber, agentEmailId,  
+                                                                          agentPassword, isAdminrights) 
+                                                VALUES ('${id}','${data.agentFirstName}','${data.agentMiddleName}','${data.agentLastName}',
+                                                '${data.agentGender}','${data.agentBirthDate}','${data.agentAddressLine1}',
+                                                '${data.agentAddressLine2}','${data.agentCity}','${data.agentState}',
+                                                '${data.agentPincode}','${data.agentMobileNumber}','${data.agentEmailId}',
+                                                '${data.agentPassword}','${data.isAdminrights}')`;
+                pool.query(sql_querry_adddetails,(err,data)=>{
+                if(err) return res.json(err)
+                return res.status(200),
+                res.json("User Added Successfully");
+                })
+              }
         })
     }
 }

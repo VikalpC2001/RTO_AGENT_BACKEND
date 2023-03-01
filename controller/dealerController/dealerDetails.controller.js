@@ -30,8 +30,7 @@ const getDealerDetailsById = async(req,res) =>{
                                                       FROM dealer_details 
                                                       INNER JOIN state_data ON dealer_details.dealerFirmState = state_data.stateId
                                                       INNER JOIN city_data ON dealer_details.dealerFirmCity = city_data.cityId
-                                                      WHERE dealerId = '${data.dealerId}';
-                                                      SELECT * From tto_form_data`;
+                                                      WHERE dealerId = '${data.dealerId}'`;
 
         pool.query(sql_queries_getdetailsByid,(err,data)=>{
             if(err) return res.send(err);

@@ -5,7 +5,7 @@ const { Readable } =  require('stream');
 const pool = require("../../database");
 
 const fillPDFdata = async(data)=>{
-
+console.log(">>>>>",data[0].vehicleRegistrationNumber);
   const details = {
     vehicleRegistrationNumber    : data[0].vehicleRegistrationNumber ? data[0].vehicleRegistrationNumber : '',
     vehicleMake                  : data[0].vehicleMake               ? data[0].vehicleMake               : '',
@@ -239,14 +239,15 @@ const genrateTTOform = async(req,res) => {
                                                UPPER(CONCAT(buyerFirstName," ",buyerMiddleName," ",buyerLastName)) AS buyerName,
                                                UPPER(CONCAT(buyerAddressLine1,", ",buyerAddressLine2,", ",buyerAddressLine3)) AS buyerAddress,
                                                CONCAT(state_data.stateName,", ",city_data.cityName," - ",buyerPincode) AS buyerStateCityPincode,
-                                               (city_data.cityName) AS serviceAuthority, (insurance_data.insuranceCompanyName) AS insuranceCompanyName, policyNumber, 
+                                               (rto_city_data.cityRTOName) AS serviceAuthority, (insurance_data.insuranceCompanyName) AS insuranceCompanyName, policyNumber, 
                                                DATE_FORMAT(insuranceStartDate, '%d-%m-%Y') AS insuranceStartDate, DATE_FORMAT(insuranceEndDate, '%d-%m-%Y') AS insuranceEndDate
                                                FROM vehicle_registration_details
-                                               INNER JOIN state_data ON state_data.stateId = vehicle_registration_details.buyerState
-                                               INNER JOIN city_data 
+                                               LEFT JOIN state_data ON state_data.stateId = vehicle_registration_details.buyerState
+                                               LEFT JOIN city_data 
                                                ON city_data.cityId = vehicle_registration_details.buyerCity = vehicle_registration_details.serviceAuthority
-                                               INNER JOIN insurance_data ON insurance_data.insuranceId = vehicle_registration_details.insuranceCompanyNameId
-                                               WHERE vehicleRegistrationId = '${vehicleRegistrationId}';`
+                                               LEFT JOIN rto_city_data ON rto_city_data.RTOcityId = vehicle_registration_details.serviceAuthority
+                                               LEFT JOIN insurance_data ON insurance_data.insuranceId = vehicle_registration_details.insuranceCompanyNameId
+                                               WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
             pool.query(sql_querry_getdetailsById,(err,data)=>{
               if(err) return res.json(err);
               var temp;

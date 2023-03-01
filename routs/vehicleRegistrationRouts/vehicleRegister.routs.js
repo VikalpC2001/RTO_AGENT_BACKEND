@@ -6,7 +6,7 @@ const vehicleRegistrationController = require('../../controller/vehicleRegistrat
 const formController = require("../../controller/formController/ttoForm.Controller")
 
 router.get('/getVehicleRegistrationDetails',protect,vehicleRegistrationController.getVehicleRegistrationDetails);
-router.post('/getVehicleRegistrationDetailsById',protect,vehicleRegistrationController.getVehicleRegistrationDetailsById);
+router.get('/getVehicleRegistrationDetailsById',protect,vehicleRegistrationController.getVehicleRegistrationDetailsById);
 router.get('/getVehicleRegistrationDetailsBydealerId',protect,vehicleRegistrationController.getVehicleRegistrationDetailsBydealerId);
 router.post('/getVehicleRegistrationDetailsByAgentId',protect,vehicleRegistrationController.getVehicleRegistrationDetailsByAgentId);
 router.post('/addVehicleRegistrationDetails',protect,vehicleRegistrationController.addVehicleRegistrationDetails,formController.genrateTTOform);

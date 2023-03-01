@@ -1,11 +1,6 @@
 const mysql = require('mysql');
 const pool = require('../../database');
 const jwt = require("jsonwebtoken");
-const asyncHandler = require("express-async-handler");
-const { PDFDocument } = require("pdf-lib");
-const { writeFileSync, readFileSync } = require("fs");
-var {google} = require('googleapis');
-const { Readable } =  require('stream');
 
 const getVehicleRegistrationDetails = async(req,res)=>{
     try{
@@ -22,15 +17,17 @@ const getVehicleRegistrationDetails = async(req,res)=>{
 const getVehicleRegistrationDetailsById = async(req,res) =>{
     try{
         const data = {
-            vehicleRegistrationId : req.body.vehicleRegistrationId
+            vehicleRegistrationId : req.query.vehicleRegistrationId
         }
         sql_queries_getdetailsByid = `SELECT vehicleRegistrationNumber, vehicleChassisNumber, vehicleEngineNumber, vehicleClass,
-                                             vehicleCategory, vehicleMake, vehicleModel, vehicleRegistrationDate, vehicleWorkType, sellerFirstName, 
+                                             vehicleCategory, vehicleMake, vehicleModel, vehicleRegistrationDate, sellerFirstName, 
                                              sellerMiddleName, sellerLastName, sellerAddress, buyerFirstName, buyerMiddleName, buyerLastName,
                                              buyerAddressLine1, buyerAddressLine2, buyerAddressLine3, buyerState, buyerCity, buyerPincode,
-                                             clientWhatsAppNumber, serviceAuthority, dealerId, insuranceType, insuranceCompanyNameId,
+                                             clientWhatsAppNumber, serviceAuthority, COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS Customer, insuranceType, insuranceCompanyNameId,
                                              policyNumber, insuranceStartDate, insuranceEndDate, vehicleWorkStatus, comment
-                                             FROM vehicle_registration_details WHERE vehicleRegistrationId = ${data.vehicleRegistrationId}`;
+                                             FROM vehicle_registration_details 
+                                             LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
+                                             WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}'`;
         pool.query(sql_queries_getdetailsByid,(err,data)=>{
             if(err) return res.send(err);
             return res.json(data);
@@ -82,7 +79,9 @@ const getVehicleRegistrationDetailsBydealerId = async(req,res) => {
         }else{
             const numRows = rows[0].numRows;
             const numPages = Math.ceil(numRows / numPerPage);
-            pool.query(`SELECT vehicle_registration_details.vehicleRegistrationId, vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType, CONCAT(vehicleMake,"/",vehicleModel) AS vehicleModelMake, clientWhatsAppNumber FROM vehicle_registration_details
+            pool.query(`SELECT vehicle_registration_details.vehicleRegistrationId, vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
+                               CONCAT(vehicleMake,"/",vehicleModel) AS vehicleModelMake, clientWhatsAppNumber 
+                               FROM vehicle_registration_details
                                INNER JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                INNER JOIN rto_work_data ON rto_work_data.workId = work_list.workId
                                WHERE vehicle_registration_details.dealerId  = '${data.dealerId}' GROUP BY work_list.vehicleRegistrationId LIMIT ` + limit,(err, rows, fields) =>{
@@ -111,7 +110,7 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
         
 
         const isRRF = ()=>{
-            if(req.body.RenewalofRegistration == true){
+            if(req.body.RRF == true){
                 return true;
             }else{
                 return false;
@@ -119,7 +118,7 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
         }
 
         const isTTO = ()=>{
-            if(req.body.TransferofOwnership == true){
+            if(req.body.TO == true){
                 return true;
             }else{
                 return false;
@@ -127,13 +126,13 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
         }
 
         const isOther = ()=>{
-            if(req.body.TerminationofHypothecation == true || 
-               req.body.DuplicateRC == true || 
-               req.body.ChangeofAddress == true || 
-               req.body.AdditionofHypothecation == true || 
-               req.body.ContinuationofHypothecation == true || 
-               req.body.ApplicationforNoObjectionCertificate == true ||
-               req.body.AlterationofVehicle == true){
+            if(req.body.HPT == true || 
+               req.body.DRC == true || 
+               req.body.addressChange == true || 
+               req.body.HPA == true || 
+               req.body.HPC == true || 
+               req.body.NOC == true ||
+               req.body.AV == true){
                 return true;
                }else{
                 return false;
@@ -167,23 +166,23 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
         const insertWorkList = ()=>{
             var row = []
     
-            if(req.body.TransferofOwnership){
+            if(req.body.TO){
                 row.push("('"+id+"',1)");
-            }if(req.body.TerminationofHypothecation){
+            }if(req.body.HPT){
                 row.push("('"+id+"',2)");
-            }if(req.body.DuplicateRC){
+            }if(req.body.DRC){
                 row.push("('"+id+"',3)");
-            }if(req.body.ChangeofAddress){
+            }if(req.body.addressChange){
                 row.push("('"+id+"',4)");
-            }if(req.body.AdditionofHypothecation){
+            }if(req.body.HPA){
                 row.push("('"+id+"',5)")
-            }if(req.body.ContinuationofHypothecationn){
+            }if(req.body.HPC){
                 row.push("('"+id+"',6)");
-            }if(req.body.RenewalofRegistration){
+            }if(req.body.RRF){
                 row.push("('"+id+"',7)");
-            }if(req.body.ApplicationforNoObjectionCertificate){
+            }if(req.body.NOC){
                 row.push("('"+id+"',8)");
-            }if(req.body.AlterationofVehicle){
+            }if(req.body.AV){
                 row.push("('"+id+"',9)");
             }
             console.log(row)
@@ -219,29 +218,30 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
                 sellerMiddleName                     :   req.body.sellerMiddleName,            
                 sellerLastName                       :   req.body.sellerLastName,              
                 sellerAddress                        :   req.body.sellerAddress,               
-                buyerFirstName                       :   req.body.buyerFirstName ? req.body.buyerFirstName : '',                 
-                buyerMiddleName                      :   req.body.buyerMiddleName ? req.body.buyerMiddleName : '',           
-                buyerLastName                        :   req.body.buyerLastName ? req.body.buyerLastName : '',               
-                buyerAddressLine1                    :   req.body.buyerAddressLine1 ? req.body.buyerAddressLine1 : '',           
-                buyerAddressLine2                    :   req.body.buyerAddressLine2 ? req.body.buyerAddressLine2 : '',          
-                buyerAddressLine3                    :   req.body.buyerAddressLine3 ? req.body.buyerAddressLine3 : '',                   
+                buyerFirstName                       :   req.body.buyerFirstName ? req.body.buyerFirstName : null,                 
+                buyerMiddleName                      :   req.body.buyerMiddleName ? req.body.buyerMiddleName : null,           
+                buyerLastName                        :   req.body.buyerLastName ? req.body.buyerLastName : null,               
+                buyerAddressLine1                    :   req.body.buyerAddressLine1 ? req.body.buyerAddressLine1 : null,           
+                buyerAddressLine2                    :   req.body.buyerAddressLine2 ? req.body.buyerAddressLine2 : null,          
+                buyerAddressLine3                    :   req.body.buyerAddressLine3 ? req.body.buyerAddressLine3 : null,                   
                 buyerState                           :   req.body.buyerState ? req.body.buyerState : null,                  
                 buyerCity                            :   req.body.buyerCity ? req.body.buyerCity : null,                   
                 buyerPincode                         :   req.body.buyerPincode ? req.body.buyerPincode : null,                
                 clientWhatsAppNumber                 :   req.body.clientWhatsAppNumber,        
                 serviceAuthority                     :   req.body.serviceAuthority,            
-                dealerId                             :   req.body.dealerId,                    
-                insuranceType                        :   req.body.insuranceType ? req.body.insuranceType : '',       
+                dealerId                             :   req.body.dealerId ? req.body.dealerId : null,
+                privateCustomerName                  :   req.body.privateCustomerName ? req.body.privateCustomerName : null,                    
+                insuranceType                        :   req.body.insuranceType ? req.body.insuranceType : null,       
                 insuranceCompanyNameId               :   req.body.insuranceCompanyNameId ? req.body.insuranceCompanyNameId : null,
-                policyNumber                         :   req.body.policyNumber ? req.body.policyNumber : '',                
-                insuranceStartDate                   :   new Date(req.body.insuranceStartDate?req.body.insuranceStartDate:null).toISOString().slice(0, 10),          
-                insuranceEndDate                     :   new Date(req.body.insuranceEndDate?req.body.insuranceEndDate:null).toISOString().slice(0, 10),            
+                policyNumber                         :   req.body.policyNumber ? req.body.policyNumber : null,                
+                insuranceStartDate                   :   new Date(req.body.insuranceStartDate?req.body.insuranceStartDate:"01/01/2001").toISOString().slice(0, 10),          
+                insuranceEndDate                     :   new Date(req.body.insuranceEndDate?req.body.insuranceEndDate:"01/01/2001").toISOString().slice(0, 10),            
                 vehicleWorkStatus                    :   "Pending",           
-                comment                              :   req.body.comment
+                comment                              :   req.body.comment ? req.body.comment : null
             }   
             if(!data.vehicleRegistrationNumber || !data.vehicleChassisNumber || !data.vehicleEngineNumber ||  
                !data.sellerFirstName || !data.sellerMiddleName || !data.sellerLastName || 
-               !data.sellerAddress || !data.clientWhatsAppNumber || !data.serviceAuthority|| !data.dealerId || !data.vehicleWorkStatus){
+               !data.sellerAddress || !data.clientWhatsAppNumber || !data.serviceAuthority || !data.vehicleWorkStatus){
                 res.status(401);
                 res.send("Please Fill all the feilds")
             }else{
@@ -252,20 +252,20 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
                                                                                 buyerFirstName, buyerMiddleName, buyerLastName,
                                                                                 buyerAddressLine1, buyerAddressLine2, buyerAddressLine3, 
                                                                                 buyerState, buyerCity, buyerPincode, clientWhatsAppNumber, 
-                                                                                serviceAuthority, dealerId, 
+                                                                                serviceAuthority, dealerId, privateCustomerName, 
                                                                                 insuranceType, insuranceCompanyNameId, policyNumber, insuranceStartDate, insuranceEndDate, 
                                                                                 vehicleWorkStatus, comment)
                                       VALUES ('${id}','${agentId}','${data.vehicleRegistrationNumber}','${data.vehicleChassisNumber}','${data.vehicleEngineNumber}',
                                                ${data.vehicleClass},${data.vehicleCategory},'${data.vehicleMake}','${data.vehicleModel}',
                                               '${data.vehicleRegistrationDate}','${data.currentState}','${data.nextState}','${data.rrf}','${data.tto}','${data.Other}',
                                               '${data.sellerFirstName}','${data.sellerMiddleName}','${data.sellerLastName}','${data.sellerAddress}',
-                                              '${data.buyerFirstName}','${data.buyerMiddleName}','${data.buyerLastName}',
-                                              '${data.buyerAddressLine1}','${data.buyerAddressLine2}','${data.buyerAddressLine3}',
+                                              NULLIF('${data.buyerFirstName}','null'),NULLIF('${data.buyerMiddleName}','null'),NULLIF('${data.buyerLastName}','null'),
+                                              NULLIF('${data.buyerAddressLine1}','null'),NULLIF('${data.buyerAddressLine2}','null'),NULLIF('${data.buyerAddressLine3}','null'),
                                                ${data.buyerState},${data.buyerCity},${data.buyerPincode},'${data.clientWhatsAppNumber}',
-                                              '${data.serviceAuthority}','${data.dealerId}',
-                                              '${data.insuranceType}',${data.insuranceCompanyNameId},'${data.policyNumber}','${data.insuranceStartDate}','${data.insuranceEndDate}',
-                                              '${data.vehicleWorkStatus}','${data.comment}')`;
-                                              console.log(sql_queries_adddetails);
+                                              '${data.serviceAuthority}',NULLIF('${data.dealerId}','null'),NULLIF('${data.privateCustomerName}','null'),
+                                              NULLIF('${data.insuranceType}','null'),${data.insuranceCompanyNameId},NULLIF('${data.policyNumber}','null'),'${data.insuranceStartDate}','${data.insuranceEndDate}',
+                                              '${data.vehicleWorkStatus}',NULLIF('${data.comment}','null'))`;
+                                              console.log(">?>?>?>",sql_queries_adddetails);
             pool.query(sql_queries_adddetails,(err,data) =>{
                 if(err) return res.send(err);
                 // return res.json(data);
@@ -275,11 +275,10 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
                      pool.query(sql_queries_addworkdetails,(err,data)=>{
                         if(err) return res.send(err);
                         // return res.json(data);
-                        if(req.body.TransferofOwnership == true){
+                        if(req.body.TO == true){
                             next();
                         }else{
-                            return res.status(200),
-                                   res.json("Data Inserted Successfully");
+                            return res.json({status:200, message:"Data Inserted Successfully"});
                         }
                      })
                 }    
@@ -303,7 +302,7 @@ const removeVehicleRegistrationDetails = async(req,res)=>{
         sql_queries_removedetails = `DELETE FROM vehicle_registration_details WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}'`;
         pool.query(sql_queries_removedetails,(err,data)=>{
             if(err) return res.send(err);
-            return res.json(data);
+            return res.json({status:200, message:"Data Deleted Successfully"});
         })
     }catch(error){
         throw new Error('UnsuccessFull',error);
