@@ -1,6 +1,7 @@
 const mysql = require('mysql');
 const pool = require('../../database');
 const jwt = require("jsonwebtoken");
+const asyncHandler = require('express-async-handler');
 
 const getVehicleRegistrationDetails = async(req,res)=>{
     try{
@@ -79,9 +80,9 @@ const getVehicleRegistrationDetailsBydealerId = async(req,res) => {
         }else{
             const numRows = rows[0].numRows;
             const numPages = Math.ceil(numRows / numPerPage);
-            pool.query(`SELECT vehicle_registration_details.vehicleRegistrationId, vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                               CONCAT(vehicleMake,"/",vehicleModel) AS vehicleModelMake, clientWhatsAppNumber 
-                               FROM vehicle_registration_details
+            pool.query(`SELECT @a:=@a+1 AS serial_number,vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) AS vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
+                               UPPER(CONCAT(vehicleMake,"/",vehicleModel)) AS vehicleModelMake, clientWhatsAppNumber 
+                               FROM (SELECT @a:= 0) AS a, vehicle_registration_details
                                INNER JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                INNER JOIN rto_work_data ON rto_work_data.workId = work_list.workId
                                WHERE vehicle_registration_details.dealerId  = '${data.dealerId}' GROUP BY work_list.vehicleRegistrationId LIMIT ` + limit,(err, rows, fields) =>{
@@ -293,7 +294,7 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
     }                         
 }
 
-const removeVehicleRegistrationDetails = async(req,res)=>{
+const removeVehicleRegistrationDetails = async(req,res,next)=>{
 
     try{
         const data = {
@@ -301,8 +302,10 @@ const removeVehicleRegistrationDetails = async(req,res)=>{
         }
         sql_queries_removedetails = `DELETE FROM vehicle_registration_details WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}'`;
         pool.query(sql_queries_removedetails,(err,data)=>{
+            if(data){
             if(err) return res.send(err);
             return res.json({status:200, message:"Data Deleted Successfully"});
+            }
         })
     }catch(error){
         throw new Error('UnsuccessFull',error);

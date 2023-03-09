@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyparser = require('body-parser');
 const mysql = require('mysql');
-const dotenv = require('dotenv').config()
+const dotenv = require('dotenv').config();
 const agentrouter = require('./routs/agentRouts/agent.routs');
 const dealerrouter = require('./routs/delearRouts/dealer.routs');
 const stateCityrouter = require('./routs/stateAndCityRouts/stateCity.routs');
@@ -22,7 +22,6 @@ app.use(cors({
   }));
 
 app.use(bodyparser.urlencoded({extended: false}))
-
 app.use(bodyparser.json())
 
 // app.use('/events',events);

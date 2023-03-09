@@ -255,14 +255,13 @@ const genrateTTOform = async(req,res) => {
               .then((rest)=>{
                 //  return res.send(rest)
                  const pdfURL = `https://drive.google.com/uc?export=view&id=${rest}`;
-                 sql_add_PDF = `INSERT INTO tto_form_data (vehicleRegistrationId, pdfURL) 
-                                              VALUES ('${vehicleRegistrationId}','${pdfURL}')`
+                 sql_add_PDF = `INSERT INTO tto_form_data (vehicleRegistrationId, pdfURL, googleDriveId) 
+                                              VALUES ('${vehicleRegistrationId}','${pdfURL}','${rest}')`
                  pool.query(sql_add_PDF,(err,data)=>{
                    if(err) return res.json(err);
                    return res.status(200),
                           res.json("Data Inserted Successfully");
                  })
-
               });
     })
 } 
