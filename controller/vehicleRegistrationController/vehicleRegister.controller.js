@@ -7,11 +7,11 @@ const getVehicleRegistrationDetails = async(req,res)=>{
     try{
         sql_queries_getdetails = `SELECT * FROM vehicle_registration_details`;
         pool.query(sql_queries_getdetails,(data,err) =>{
-            if(err) return res.send(err);
+            if(err) return res.status(404).send(err);
             return res.json(data);
         })
     }catch(error){
-        throw new Error('UnsuccessFull',error);
+        throw new Error(error);
     }
 }
 
@@ -20,45 +20,139 @@ const getVehicleRegistrationDetailsById = async(req,res) =>{
         const data = {
             vehicleRegistrationId : req.query.vehicleRegistrationId
         }
-        sql_queries_getdetailsByid = `SELECT vehicleRegistrationNumber, vehicleChassisNumber, vehicleEngineNumber, vehicleClass,
-                                             vehicleCategory, vehicleMake, vehicleModel, vehicleRegistrationDate, sellerFirstName, 
-                                             sellerMiddleName, sellerLastName, sellerAddress, buyerFirstName, buyerMiddleName, buyerLastName,
-                                             buyerAddressLine1, buyerAddressLine2, buyerAddressLine3, buyerState, buyerCity, buyerPincode,
-                                             clientWhatsAppNumber, serviceAuthority, COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS Customer, insuranceType, insuranceCompanyNameId,
-                                             policyNumber, insuranceStartDate, insuranceEndDate, vehicleWorkStatus, comment
-                                             FROM vehicle_registration_details 
+        sql_queries_getdetailsByid = `SELECT UPPER(vehicleRegistrationNumber) AS "Regsitration Number", vehicleChassisNumber AS "Chassis Number", vehicleEngineNumber AS "Engine Number", (vehicle_class_data.vehicleClassName) AS "Vehicle Class",
+                                             (vehicle_category_data.vehicleCategoryName) AS "Vehicle Category", UPPER(vehicleMake) AS " Vehicle Make", UPPER(vehicleModel) AS "Vehicle Model", DATE_FORMAT(vehicleRegistrationDate, '%d-%M-%Y') AS "Registration Date", (rto_city_data.cityRTOName) AS "Serviceing Authority"
+                                             FROM vehicle_registration_details
+                                             INNER JOIN vehicle_category_data ON vehicle_category_data.vehicleCategoryId = vehicle_registration_details.vehicleCategory
+                                             INNER JOIN vehicle_class_data ON vehicle_class_data.vehicleClassId = vehicle_registration_details.vehicleClass
+                                             INNER JOIN rto_city_data ON rto_city_data.RTOcityId = vehicle_registration_details.serviceAuthority
+                                             WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}';
+                                      SELECT CONCAT(sellerFirstName," ",sellerMiddleName," ",sellerLastName) AS "Owner Name", sellerAddress AS "Address"
+                                             FROM vehicle_registration_details
+                                             WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}';
+                                      SELECT CONCAT(buyerFirstName," ",buyerMiddleName," ",buyerLastName) AS "Buyer Name",
+                                             CONCAT(buyerAddressLine1,", ",buyerAddressLine2,", ",buyerAddressLine3) AS "Address", CONCAT(city_data.cityName,", ",state_data.stateName) AS "City/State", buyerPincode AS "Pincode"
+                                             FROM vehicle_registration_details
+                                             INNER JOIN city_data ON city_data.cityId = vehicle_registration_details.buyerCity
+                                             INNER JOIN state_data ON state_data.stateId = vehicle_registration_details.buyerState
+                                             WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}';
+                                      SELECT insuranceType AS "Insurance Type", (insurance_data.insuranceCompanyName) AS "Insurance Company", policyNumber AS "Policy Number", DATE_FORMAT(insuranceStartDate, '%d-%M-%y') AS "Insurance from", DATE_FORMAT(insuranceEndDate, '%d/%M/%y') AS "Insurance upto"
+                                             FROM vehicle_registration_details
+                                             INNER JOIN insurance_data ON insurance_data.insuranceId = vehicle_registration_details.insuranceCompanyNameId
+                                             WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}';
+                                      SELECT vehicleWorkStatus AS "Status", comment AS "Comment"
+                                             FROM vehicle_registration_details
+                                             WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}';
+                                      SELECT GROUP_CONCAT(rto_work_data.workName SEPARATOR ', ') as workType, COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer", clientWhatsAppNumber AS "WhatsApp Number"
+                                             FROM vehicle_registration_details
+                                             INNER JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
+                                             INNER JOIN rto_work_data ON rto_work_data.workId = work_list.workId
                                              LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
-                                             WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}'`;
+                                             WHERE vehicle_registration_details.vehicleRegistrationId = '${data.vehicleRegistrationId}' GROUP BY work_list.vehicleRegistrationId;
+                                      SELECT pdfURL FROM tto_form_data WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}'`;
         pool.query(sql_queries_getdetailsByid,(err,data)=>{
-            if(err) return res.send(err);
-            return res.json(data);
+            if(err) return res.status(404).send(err);
+            const resData = {
+                'Vehicle Details'       : data[0][0],
+                'Owner Details'         : data[1][0],
+                'Buyer Details'         : data[2][0],
+                'Insurance Details'     : data[3][0],
+                'Status'                : data[4][0],
+                'Customer Details'      : data[5][0],
+                'TTO Form Link'         : data[6][0]    
+             }
+            console.log(">>>>",data)
+            return res.json(resData);
+
         })
     }catch(error){
-        throw new Error('UnsuccessFull',error);
+        throw new Error(error);
     }   
 }
 
 const getVehicleRegistrationDetailsByAgentId = async(req,res) =>{
 
     try{
+        const page = req.query.page;
+        const numPerPage = req.query.numPerPage;
+        const skip = (page-1) * numPerPage; 
+        const limit = skip + ',' + numPerPage;
         let token;
         token = req.headers.authorization.split(" ")[1];
         if(token){
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             const agentId = decoded.id.id;
-
-            sql_queries_getdetailsByagentid = `SELECT * FROM vehicle_registration_details WHERE agentId = ${agentId}`;
-            pool.query(sql_queries_getdetailsByagentid,(err,data) =>{
-                if(err) return res.send(err);
-                return res.json(data);
+            var TTO;
+            var RRF;
+            var OTHER;
+            console.log(">?>?>?",req.body);
+            if(req.query.type === 'TTO'){
+               TTO = true;
+               RRF = false;
+               OTHER = false;
+            } else if(req.query.type === 'RRF'){
+                TTO = false;
+                RRF = true;
+                OTHER =false;
+            } else if(req.query.type === 'OTHER'){
+                TTO = false;
+                RRF = false;
+                OTHER = true;
+            }
+            const workStatus = req.query.workStatus;
+            if(req.query.type === 'TTO'){
+                sql_queries_getdetailsByagentid = `SELECT count(*) as numRows FROM vehicle_registration_details WHERE agentId = '${agentId}' AND ((TTO = true AND Other = true) OR TTO = true) AND vehicleWorkStatus = '${workStatus}'`;
+            }else{
+                sql_queries_getdetailsByagentid = `SELECT count(*) as numRows FROM vehicle_registration_details WHERE agentId = '${agentId}' AND (TTO = ${TTO} AND Other = ${OTHER} AND RRF = ${RRF}) AND vehicleWorkStatus = '${workStatus}'`;
+            }
+            
+            pool.query(sql_queries_getdetailsByagentid,(err,rows) =>{
+                if(err) {
+                    console.log("error: ", err);
+                    result(err, null);
+                }else{
+                    const numRows = rows[0].numRows;
+                    const numPages = Math.ceil(numRows / numPerPage);
+                    if(req.query.type === 'TTO'){
+                        sql_query = `SELECT ROW_NUMBER() OVER(ORDER BY (SELECT 1)) AS serial_number,vehicle_registration_details.vehicleRegistrationId,UPPER(vehicleRegistrationNumber) AS vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
+                                            UPPER(CONCAT(vehicleMake,"/",vehicleModel)) AS vehicleModelMake, COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" 
+                                            FROM vehicle_registration_details
+                                            INNER JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
+                                            INNER JOIN rto_work_data ON rto_work_data.workId = work_list.workId
+                                            LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
+                                            WHERE vehicle_registration_details.agentId = '${agentId}' AND ((TTO = true AND Other = true) OR TTO = true) AND vehicleWorkStatus = '${workStatus}' GROUP BY work_list.vehicleRegistrationId ORDER BY serial_number LIMIT ${limit}`;
+                    }else{
+                        sql_query = `SELECT ROW_NUMBER() OVER(ORDER BY (SELECT 1)) AS serial_number,vehicle_registration_details.vehicleRegistrationId,UPPER(vehicleRegistrationNumber) AS vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
+                                            UPPER(CONCAT(vehicleMake,"/",vehicleModel)) AS vehicleModelMake, COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" 
+                                            FROM vehicle_registration_details
+                                            INNER JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
+                                            INNER JOIN rto_work_data ON rto_work_data.workId = work_list.workId
+                                            LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
+                                            WHERE vehicle_registration_details.agentId = '${agentId}' AND (TTO = ${TTO} AND Other = ${OTHER} AND RRF = ${RRF}) AND vehicleWorkStatus = '${workStatus}' GROUP BY work_list.vehicleRegistrationId ORDER BY serial_number LIMIT ${limit}`;
+                    }
+                    pool.query(sql_query,(err, rows, fields) =>{
+                        console.log(":::::",sql_query);
+                        if(err) {
+                            console.log("error: ", err);
+                            res.send(err, null);
+                        }else{
+                            console.log(rows);
+                            console.log(numRows);
+                            console.log("Total Page :-",numPages);
+                            return res.send({rows,numRows});
+                            // res.send(null,fields,data,numPages);
+                        }
+                    });
+                }
+                // if(err) return res.send(err);
+                // return res.json(data);
             })
         }else{
             res.status(401);
             res.send("Please Login Firest.....!");
         }
     }catch(error){
-        res.send("Please Login Firest.....!");
-        throw new Error('UnsuccessFull',error);
+        throw new Error(error);
     }   
 }
 
@@ -209,7 +303,7 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
                 vehicleCategory                      :   req.body.vehicleCategory ? req.body.vehicleCategory : null,             
                 vehicleMake                          :   req.body.vehicleMake,                 
                 vehicleModel                         :   req.body.vehicleModel,                
-                vehicleRegistrationDate              :   new Date(req.body.vehicleRegistrationDate?req.body.vehicleRegistrationDate:"01/01/2001").toISOString().slice(0, 10), 
+                vehicleRegistrationDate              :   new Date(req.body.vehicleRegistrationDate?req.body.vehicleRegistrationDate:"01/01/2001").toString().slice(4,15),
                 currentState                         :   getCurrentState(),
                 nextState                            :   getNextState(),
                 rrf                                  :   isRRF() ? 1 : 0,
@@ -235,8 +329,8 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
                 insuranceType                        :   req.body.insuranceType ? req.body.insuranceType : null,       
                 insuranceCompanyNameId               :   req.body.insuranceCompanyNameId ? req.body.insuranceCompanyNameId : null,
                 policyNumber                         :   req.body.policyNumber ? req.body.policyNumber : null,                
-                insuranceStartDate                   :   new Date(req.body.insuranceStartDate?req.body.insuranceStartDate:"01/01/2001").toISOString().slice(0, 10),          
-                insuranceEndDate                     :   new Date(req.body.insuranceEndDate?req.body.insuranceEndDate:"01/01/2001").toISOString().slice(0, 10),            
+                insuranceStartDate                   :   new Date(req.body.insuranceStartDate?req.body.insuranceStartDate:"01/01/2001").toString().slice(4,15),          
+                insuranceEndDate                     :   new Date(req.body.insuranceEndDate?req.body.insuranceEndDate:"01/01/2001").toString().slice(4,15),            
                 vehicleWorkStatus                    :   "Pending",           
                 comment                              :   req.body.comment ? req.body.comment : null
             }   
@@ -258,23 +352,23 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
                                                                                 vehicleWorkStatus, comment)
                                       VALUES ('${id}','${agentId}','${data.vehicleRegistrationNumber}','${data.vehicleChassisNumber}','${data.vehicleEngineNumber}',
                                                ${data.vehicleClass},${data.vehicleCategory},'${data.vehicleMake}','${data.vehicleModel}',
-                                              '${data.vehicleRegistrationDate}','${data.currentState}','${data.nextState}','${data.rrf}','${data.tto}','${data.Other}',
+                                               STR_TO_DATE('${data.vehicleRegistrationDate}','%b %d %Y'),'${data.currentState}','${data.nextState}','${data.rrf}','${data.tto}','${data.Other}',
                                               '${data.sellerFirstName}','${data.sellerMiddleName}','${data.sellerLastName}','${data.sellerAddress}',
                                               NULLIF('${data.buyerFirstName}','null'),NULLIF('${data.buyerMiddleName}','null'),NULLIF('${data.buyerLastName}','null'),
                                               NULLIF('${data.buyerAddressLine1}','null'),NULLIF('${data.buyerAddressLine2}','null'),NULLIF('${data.buyerAddressLine3}','null'),
                                                ${data.buyerState},${data.buyerCity},${data.buyerPincode},'${data.clientWhatsAppNumber}',
                                               '${data.serviceAuthority}',NULLIF('${data.dealerId}','null'),NULLIF('${data.privateCustomerName}','null'),
-                                              NULLIF('${data.insuranceType}','null'),${data.insuranceCompanyNameId},NULLIF('${data.policyNumber}','null'),'${data.insuranceStartDate}','${data.insuranceEndDate}',
+                                              NULLIF('${data.insuranceType}','null'),${data.insuranceCompanyNameId},NULLIF('${data.policyNumber}','null'), STR_TO_DATE('${data.insuranceStartDate}','%b %d %Y'), STR_TO_DATE('${data.insuranceEndDate}','%b %d %Y'),
                                               '${data.vehicleWorkStatus}',NULLIF('${data.comment}','null'))`;
                                               console.log(">?>?>?>",sql_queries_adddetails);
             pool.query(sql_queries_adddetails,(err,data) =>{
-                if(err) return res.send(err);
+                if(err) return res.status(404).send(err);
                 // return res.json(data);
                 else if(data){
                     res.locals.id = id
                      sql_queries_addworkdetails = `INSERT INTO work_list (vehicleRegistrationId, workId) VALUES ${insertWorkList()}`;
                      pool.query(sql_queries_addworkdetails,(err,data)=>{
-                        if(err) return res.send(err);
+                        if(err) return res.status(404).send(err);
                         // return res.json(data);
                         if(req.body.TO == true){
                             next();
@@ -289,8 +383,8 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
             res.send("Please Login Firest....!");
         }
     }catch(error){
-        res.status(400);
-        res.send("Please Login Firest....>>>.!");
+        throw new Error(error);
+        // res.send("Please Login Firest....>>>.!");
     }                         
 }
 
@@ -308,7 +402,7 @@ const removeVehicleRegistrationDetails = async(req,res,next)=>{
             }
         })
     }catch(error){
-        throw new Error('UnsuccessFull',error);
+        throw new Error(error);
     }                      
 }
 
@@ -384,11 +478,11 @@ const updateVehicleRegistrationDetails = async(req,res) =>{
                                                                                    comment = '${data.comment}'
                                                                                    WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}'`;
         pool.query(sql_querry_updatedetails,(err,data) =>{ 
-            if(err) return res.json(err)
+            if(err) return res.status(404).send(err);
             return res.json(data)
         })
     }catch(error){
-        throw new Error('UnsuccessFull',error);
+        throw new Error(error);
     }   
 }
 

@@ -17,7 +17,7 @@ const getAgentDetails = async(req,res) => {
         }else{
             const numRows = rows[0].numRows;
             const numPages = Math.ceil(numRows / numPerPage);
-            pool.query(`SELECT agentId, agentFirstName, DATE_FORMAT(agentBirthDate, '%d-%M-%Y')as BirthDate FROM agent_details LIMIT ` + limit,(err, rows, fields) =>{
+            pool.query(`SELECT @a:=@a+1 AS serial_number, agentId, CONCAT(agentFirstName," ",agentLastName) AS agentName, agentEmailId, agentMobileNumber FROM (SELECT @a:= 0) AS a,agent_details LIMIT ` + limit,(err, rows, fields) =>{
                 if(err) {
                     console.log("error: ", err);
                     res.send(err, null);
@@ -48,7 +48,7 @@ const addAgentDetails = async(req,res) => {
         agentMiddleName     : req.body.agentMiddleName,
         agentLastName       : req.body.agentLastName,
         agentGender         : req.body.agentGender,
-        agentBirthDate      : new Date(req.body.agentBirthDate?req.body.agentBirthDate:"01/01/2001").toISOString().slice(0, 10),
+        agentBirthDate      : new Date(req.body.agentBirthDate?req.body.agentBirthDate:"01/01/2001").toString().slice(4, 15),
         agentAddressLine1   : req.body.agentAddressLine1,
         agentAddressLine2   : req.body.agentAddressLine2,
         agentCity           : req.body.agentCity,
@@ -75,7 +75,7 @@ const addAgentDetails = async(req,res) => {
                                                                           agentPincode, agentMobileNumber, agentEmailId,  
                                                                           agentPassword, isAdminrights) 
                                                 VALUES ('${id}','${data.agentFirstName}','${data.agentMiddleName}','${data.agentLastName}',
-                                                '${data.agentGender}','${data.agentBirthDate}','${data.agentAddressLine1}',
+                                                '${data.agentGender}',STR_TO_DATE('${data.agentBirthDate}','%b %d %Y'),'${data.agentAddressLine1}',
                                                 '${data.agentAddressLine2}','${data.agentCity}','${data.agentState}',
                                                 '${data.agentPincode}','${data.agentMobileNumber}','${data.agentEmailId}',
                                                 '${data.agentPassword}','${data.isAdminrights}')`;

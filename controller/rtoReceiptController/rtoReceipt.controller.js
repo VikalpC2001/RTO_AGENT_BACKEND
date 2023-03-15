@@ -14,11 +14,6 @@ const auth = new google.auth.GoogleAuth({
 
 const uploadReceipt = async(req, res) => {
 
-    // console.log("date",new Date());
-    console.log(convertDateToUTC(new Date(10/02/2021)));
-    function convertDateToUTC(date) { 
-    return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()); 
-    }
     try {
         upload(req,res, async()=>{
             // console.log("/////",req.files);
@@ -33,10 +28,12 @@ const uploadReceipt = async(req, res) => {
                     }
                     if(data){
                         const receiptURL = `https://drive.google.com/uc?export=view&id=${temp}`;
-                        sql_add_Receipt = `INSERT INTO rto_receipt_data (vehicleRegistrationId, receiptURL, receiptGoogleDriveId, appointmentDate) VALUES ('${data.vehicleRegistrationId}','${receiptURL}','${temp}','${data.appointmentDate}')`;
+                        sql_add_Receipt = `INSERT INTO rto_receipt_data (vehicleRegistrationId, receiptURL, receiptGoogleDriveId, appointmentDate) VALUES ('${data.vehicleRegistrationId}','${receiptURL}','${temp}','${data.appointmentDate}');
+                                           UPDATE vehicle_registration_details SET vehicleWorkStatus = 'Appointment Done' WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}'`;
                         pool.query(sql_add_Receipt,(err,data)=>{
                         if(err) return res.json(err);
-                        return res.status(200),
+                          if(err) return res.status(404).send(err);
+                          return res.status(200),
                                res.json("Receipt Uoloaded Successfully");
                       })
                     }
