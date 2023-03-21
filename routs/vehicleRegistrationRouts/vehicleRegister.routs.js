@@ -6,13 +6,14 @@ const vehicleRegistrationController = require('../../controller/vehicleRegistrat
 const formController = require("../../controller/formController/ttoForm.Controller");
 const rtoReceipt = require("../../controller/rtoReceiptController/rtoReceipt.controller");
 
-router.get('/getVehicleRegistrationDetails',protect,vehicleRegistrationController.getVehicleRegistrationDetails);
+router.get('/getListOfVehicleRegistrationDetails',protect,vehicleRegistrationController.getListOfVehicleRegistrationDetails);
 router.get('/getVehicleRegistrationDetailsById',protect,vehicleRegistrationController.getVehicleRegistrationDetailsById);
 router.get('/getVehicleRegistrationDetailsBydealerId',protect,vehicleRegistrationController.getVehicleRegistrationDetailsBydealerId);
 router.get('/getVehicleRegistrationDetailsByAgentId',protect,vehicleRegistrationController.getVehicleRegistrationDetailsByAgentId);
 router.post('/addVehicleRegistrationDetails',protect,vehicleRegistrationController.addVehicleRegistrationDetails,formController.genrateTTOform);
-router.post('/removeVehicleRegistrationDetails',protect,vehicleRegistrationController.removeVehicleRegistrationDetails);
+router.delete('/removeVehicleRegistrationDetails',protect,vehicleRegistrationController.removeVehicleRegistrationDetails);
 router.post('/updateVehicleRegistrationDetails',protect,vehicleRegistrationController.updateVehicleRegistrationDetails);
 router.post('/uploadReceipt',rtoReceipt.uploadReceipt);
+router.get('/exportExcelSheetForVehicleDetails',protect,vehicleRegistrationController.exportExcelSheetForVehicleDetails);
 
 module.exports = router;

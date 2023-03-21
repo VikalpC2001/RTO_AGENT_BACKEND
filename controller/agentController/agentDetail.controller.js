@@ -17,7 +17,8 @@ const getAgentDetails = async(req,res) => {
         }else{
             const numRows = rows[0].numRows;
             const numPages = Math.ceil(numRows / numPerPage);
-            pool.query(`SELECT @a:=@a+1 AS serial_number, agentId, CONCAT(agentFirstName," ",agentLastName) AS agentName, agentEmailId, agentMobileNumber FROM (SELECT @a:= 0) AS a,agent_details LIMIT ` + limit,(err, rows, fields) =>{
+            pool.query(`SELECT @a:=@a+1 AS serial_number, agentId, CONCAT(agentFirstName," ",agentLastName) AS agentName, agentEmailId, agentMobileNumber 
+                               FROM (SELECT @a:= 0) AS a,agent_details LIMIT ` + limit,(err, rows, fields) =>{
                 if(err) {
                     console.log("error: ", err);
                     res.send(err, null);
@@ -153,6 +154,7 @@ const authUser = async(req,res) =>{
             res.json({
                 agentId: data[0].agentId,
                 isAdminrights: data[0].isAdminrights,
+                userName: data[0].agentFirstName +" "+ data[0].agentLastName,
                 token: generateToken({id:data[0].agentId,rights:data[0].isAdminrights}), 
             });
             console.log("??",generateToken({id:data[0].agentId,rights:data[0].isAdminrights}),new Date());
