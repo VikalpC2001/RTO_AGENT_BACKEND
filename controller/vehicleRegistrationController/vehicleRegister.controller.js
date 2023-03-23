@@ -26,9 +26,9 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
             }else if(req.query.startDate && req.query.endDate){
                 sql_queries_getDateWisedetailsByagentid = `SELECT count(*) as numRows FROM vehicle_registration_details WHERE vehicle_registration_details.agentId = '${agentId}' AND vehicleRegistrationCreationDate BETWEEN STR_TO_DATE('${data.startDate}','%b %d %Y') AND STR_TO_DATE('${data.endDate}','%b %d %Y')`;
             }else if(req.query.dealerId){
-                sql_queries_getDateWisedetailsByagentid = `SELECT count(*) as numRows FROM vehicle_registration_details WHERE vehicleRegistrationCreationDate = (SELECT MAX(vehicle_registration_details.vehicleRegistrationCreationDate) FROM vehicle_registration_details WHERE  vehicle_registration_details.dealerId = '${data.dealerId}')`;
+                sql_queries_getDateWisedetailsByagentid = `SELECT count(*) as numRows FROM vehicle_registration_details WHERE vehicle_registration_details.dealerId = '${data.dealerId}' AND vehicleRegistrationCreationDate = (SELECT MAX(vehicle_registration_details.vehicleRegistrationCreationDate) FROM vehicle_registration_details WHERE  vehicle_registration_details.dealerId = '${data.dealerId}')`;
             }else{
-                sql_queries_getDateWisedetailsByagentid = `SELECT count(*) as numRows FROM vehicle_registration_details WHERE vehicleRegistrationCreationDate = (SELECT MAX(vehicle_registration_details.vehicleRegistrationCreationDate) FROM vehicle_registration_details WHERE agentId = '${agentId}')`;
+                sql_queries_getDateWisedetailsByagentid = `SELECT count(*) as numRows FROM vehicle_registration_details WHERE vehicle_registration_details.agentId = '${agentId}' AND vehicleRegistrationCreationDate = (SELECT MAX(vehicle_registration_details.vehicleRegistrationCreationDate) FROM vehicle_registration_details WHERE agentId = '${agentId}')`;
             }
             
             pool.query(sql_queries_getDateWisedetailsByagentid,(err,rows) =>{
@@ -39,8 +39,8 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                     const numPages = Math.ceil(numRows / numPerPage);
                     if(req.query.startDate && req.query.endDate && req.query.dealerId){
                         sql_query = `SELECT UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer"
-                                            ,vehicleChassisNumber  FROM vehicle_registration_details
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber  
+                                            FROM vehicle_registration_details
                                             LEFT JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
                                             LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
@@ -48,8 +48,8 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                                             GROUP BY work_list.vehicleRegistrationId ORDER BY RIGHT(vehicleRegistrationNumber,4) LIMIT ${limit}`;
                     }else if(req.query.startDate && req.query.endDate){
                         sql_query = `SELECT UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer"
-                                            ,vehicleChassisNumber  FROM vehicle_registration_details
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber  
+                                            FROM vehicle_registration_details
                                             LEFT JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
                                             LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
@@ -57,21 +57,21 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                                             GROUP BY work_list.vehicleRegistrationId ORDER BY RIGHT(vehicleRegistrationNumber,4) LIMIT ${limit}`;
                     }else if(req.query.dealerId){
                         sql_query = `SELECT UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer"
-                                            ,vehicleChassisNumber  FROM vehicle_registration_details
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber  
+                                            FROM vehicle_registration_details
                                             LEFT JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
                                             LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
-                                            WHERE vehicleRegistrationCreationDate = (SELECT MAX(vehicle_registration_details.vehicleRegistrationCreationDate) FROM vehicle_registration_details WHERE  vehicle_registration_details.dealerId = '${data.dealerId}')
+                                            WHERE vehicle_registration_details.dealerId = '${data.dealerId}' AND vehicleRegistrationCreationDate = (SELECT MAX(vehicleRegistrationCreationDate) FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}')
                                             GROUP BY work_list.vehicleRegistrationId ORDER BY RIGHT(vehicleRegistrationNumber,4) LIMIT ${limit}`;
                     }else{
                         sql_query = `SELECT UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer"
-                                            ,vehicleChassisNumber  FROM vehicle_registration_details
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber  
+                                            FROM vehicle_registration_details
                                             LEFT JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
                                             LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
-                                            WHERE vehicleRegistrationCreationDate = (SELECT MAX(vehicle_registration_details.vehicleRegistrationCreationDate) FROM vehicle_registration_details WHERE agentId = '${agentId}')
+                                            WHERE vehicle_registration_details.agentId = '${agentId}' AND vehicleRegistrationCreationDate = (SELECT MAX(vehicleRegistrationCreationDate) FROM vehicle_registration_details WHERE agentId = '${agentId}')
                                             GROUP BY work_list.vehicleRegistrationId ORDER BY RIGHT(vehicleRegistrationNumber,4) LIMIT ${limit}`;
                     }
                     pool.query(sql_query,(err, rows, fields) =>{
@@ -295,8 +295,8 @@ const exportExcelSheetForVehicleDetails = (req, res) => {
             if(req.query.startDate && req.query.endDate && req.query.dealerId){
 
                 sql_queries_getdetails = `SELECT UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                                 COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer"
-                                                 ,vehicleChassisNumber  FROM vehicle_registration_details
+                                                 COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer",clientWhatsAppNumber  
+                                                 FROM vehicle_registration_details
                                                  LEFT JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                                  LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
                                                  LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
@@ -306,8 +306,8 @@ const exportExcelSheetForVehicleDetails = (req, res) => {
             }else if(req.query.startDate && req.query.endDate){
 
                 sql_queries_getdetails = `SELECT UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                                 COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer"
-                                                 ,vehicleChassisNumber  FROM vehicle_registration_details
+                                                 COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber  
+                                                 FROM vehicle_registration_details
                                                  LEFT JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                                  LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
                                                  LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
@@ -317,8 +317,8 @@ const exportExcelSheetForVehicleDetails = (req, res) => {
             }else if(req.query.dealerId){
 
                 sql_queries_getdetails = `SELECT UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                                 COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer"
-                                                 ,vehicleChassisNumber  FROM vehicle_registration_details
+                                                 COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber 
+                                                 FROM vehicle_registration_details
                                                  LEFT JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                                  LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
                                                  LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
@@ -328,8 +328,8 @@ const exportExcelSheetForVehicleDetails = (req, res) => {
             }else{
 
                 sql_queries_getdetails = `SELECT UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                                 COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer"
-                                                 ,vehicleChassisNumber  FROM vehicle_registration_details
+                                                 COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber  
+                                                 FROM vehicle_registration_details
                                                  LEFT JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                                  LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
                                                  LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
@@ -611,7 +611,7 @@ const removeVehicleRegistrationDetails = async(req,res,next)=>{
                 pool.query(sql_queries_removedetails,(err,data)=>{
             if(data){
             if(err) return res.send(err);
-            return res.json({status:200, message:"Data Deleted Successfully"});
+            return res.json({status:200, message:"Vehicle Deleted Successfully"});
             }
         })   
           }else {
