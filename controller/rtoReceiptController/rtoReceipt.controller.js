@@ -29,7 +29,7 @@ const uploadReceipt = async(req, res) => {
                     if(data){
                         const receiptURL = `https://drive.google.com/uc?export=view&id=${temp}`;
                         sql_add_Receipt = `INSERT INTO rto_receipt_data (vehicleRegistrationId, receiptURL, receiptGoogleDriveId, appointmentDate) VALUES ('${data.vehicleRegistrationId}','${receiptURL}','${temp}',STR_TO_DATE('${data.appointmentDate}','%b %d %Y'));
-                                           UPDATE vehicle_registration_details SET vehicleWorkStatus = 'Appointment Done' WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}'`;
+                                           UPDATE vehicle_registration_details SET vehicleWorkStatus = 'Appointment' WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}'`;
                         pool.query(sql_add_Receipt,(err,data)=>{
                         if(err) return res.json(err);
                           if(err) return res.status(404).send(err);
