@@ -32,7 +32,7 @@ console.log(">>>>>",data[0].vehicleRegistrationNumber);
     return auth;
   };
 
-  const document = await PDFDocument.load(readFileSync("/Users/vikalpchavda/Desktop/old mac/Rto_Agent_Website/backend/assets/TTO_Form-edit22.pdf"));
+  const document = await PDFDocument.load(readFileSync(process.env.TTO_URL));
 
   // const firstPage = doc.addPage([612.00, 1008.00]);
   const firstPage = document.getPage(0);

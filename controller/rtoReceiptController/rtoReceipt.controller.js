@@ -18,18 +18,27 @@ const uploadReceipt = async(req, res) => {
         upload(req,res, async()=>{
             // console.log("/////",req.files);
             const { files } = req;
-                const temp =  await uploadFile(files[0])
+            if(!files[0]){
+                res.status(401);
+                res.send("Please Select File")
+            }else{
+              const temp =  await uploadFile(files[0])
                 // console.log(">>?",temp);
                 // fillPDFdata(data)
                 .then((temp)=>{
                     const data = {
                         vehicleRegistrationId : req.body.vehicleRegistrationId,
-                        appointmentDate       : new Date(req.body.appointmentDate?req.body.appointmentDate:"01/01/2001").toString().slice(4, 15)
+                        appointmentDate       : new Date(req.body.appointmentDate?req.body.appointmentDate:'10/10/1001').toString().slice(4, 15)
                     }
-                    if(data){
-                        const receiptURL = `https://drive.google.com/uc?export=view&id=${temp}`;
-                        sql_add_Receipt = `INSERT INTO rto_receipt_data (vehicleRegistrationId, receiptURL, receiptGoogleDriveId, appointmentDate) VALUES ('${data.vehicleRegistrationId}','${receiptURL}','${temp}',STR_TO_DATE('${data.appointmentDate}','%b %d %Y'));
-                                           UPDATE vehicle_registration_details SET vehicleWorkStatus = 'Appointment' WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}'`;
+                    console.log("<><><><>",data.appointmentDate)
+                    if(data.vehicleRegistrationId === ''){
+                      res.status(401);
+                      res.send("Please Enter Id")
+                    }else{
+                        const receiptURL = `https://drive.google.com/uc?export=view&id=${temp}`
+                          sql_add_Receipt = `INSERT INTO rto_receipt_data (vehicleRegistrationId, receiptURL, receiptGoogleDriveId, appointmentDate) VALUES ('${data.vehicleRegistrationId}','${receiptURL}','${temp}',STR_TO_DATE(NULLIF('${data.appointmentDate}','Oct 10 1001'),'%b %d %Y'));
+                                             UPDATE vehicle_registration_details SET vehicleWorkStatus = 'Appointment' WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}'`;
+                        console.log(">>>>>>",sql_add_Receipt);
                         pool.query(sql_add_Receipt,(err,data)=>{
                         if(err) return res.json(err);
                           if(err) return res.status(404).send(err);
@@ -39,6 +48,7 @@ const uploadReceipt = async(req, res) => {
                     }
                 })
             // return res.status(200).send(`Receipt Uoloaded Successfullys`);
+            }
         })
     } catch (f) {
         return res.send(f.message);
