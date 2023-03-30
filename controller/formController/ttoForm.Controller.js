@@ -26,7 +26,7 @@ console.log(">>>>>",data[0].vehicleRegistrationNumber);
 
   const authenticateGoogle = () => {
     const auth = new google.auth.GoogleAuth({
-      keyFile: `/Users/vikalpchavda/Desktop/old mac/Rto_Agent_Website/backend/service-account.json`,
+      keyFile: process.env.GOOGLE_SERVICE,
       scopes: "https://www.googleapis.com/auth/drive",
     });
     return auth;

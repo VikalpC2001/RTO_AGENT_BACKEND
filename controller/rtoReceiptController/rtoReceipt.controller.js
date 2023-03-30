@@ -4,7 +4,7 @@ const { google } = require("googleapis");
 const pool = require("../../database");
 const upload = multer({limits: {fileSize : 5 * 1024 * 1024}}).any();
 
-const KEYFILEPATH = `/Users/vikalpchavda/Desktop/old mac/Rto_Agent_Website/backend/service-account.json`;
+const KEYFILEPATH = process.env.GOOGLE_SERVICE;
 const SCOPES = ["https://www.googleapis.com/auth/drive"];
 
 const auth = new google.auth.GoogleAuth({
