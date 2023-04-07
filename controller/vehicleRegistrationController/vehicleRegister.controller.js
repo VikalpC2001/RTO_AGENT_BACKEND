@@ -991,6 +991,10 @@ const moveToComplete = (req,res) =>{
     })
 } 
 
+const WhatsAppHyy = (req,res)=>{
+    res.send("Hyyy");
+}
+
 module.exports = { 
                     getListOfVehicleRegistrationDetails,
                     getVehicleRegistrationDetailsById,
@@ -999,5 +1003,6 @@ module.exports = {
                     removeVehicleRegistrationDetails,
                     updateVehicleRegistrationDetails,
                     exportExcelSheetForVehicleDetails,
-                    moveToComplete
+                    moveToComplete,
+                    WhatsAppHyy
                  };

@@ -15,5 +15,6 @@ router.post('/updateVehicleRegistrationDetails',protect,vehicleRegistrationContr
 router.post('/uploadReceipt',rtoReceipt.uploadReceipt);
 router.get('/exportExcelSheetForVehicleDetails',protect,vehicleRegistrationController.exportExcelSheetForVehicleDetails);
 router.post('/moveToComplete',vehicleRegistrationController.moveToComplete);
+router.get('/WhatsAppHyy',vehicleRegistrationController.WhatsAppHyy);
 
 module.exports = router;
