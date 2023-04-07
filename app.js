@@ -7,6 +7,7 @@ const dealerrouter = require('./routs/delearRouts/dealer.routs');
 const stateCityrouter = require('./routs/stateAndCityRouts/stateCity.routs');
 const vehicleRegistrationrouter = require('./routs/vehicleRegistrationRouts/vehicleRegister.routs');
 const ddlVehiclePagerouter = require('./routs/ddlVehiclePageRouts/ddlVehiclePage.routs');
+const mobileApprouter = require("./routs/mobileAppRouts/mobileApp.routs")
 const cors = require('cors');
 const { notFound, erroHandler } = require('./middlewares/errorMiddleware');
 
@@ -31,6 +32,7 @@ app.use('/stateCityrouter',stateCityrouter);
 app.use('/dealerrouter',dealerrouter);
 app.use('/vehicleRegistrationrouter',vehicleRegistrationrouter);
 app.use('/ddlVehiclePagerouter',ddlVehiclePagerouter);
+app.use('/mobileApprouter',mobileApprouter);
 
 app.use(notFound);
 app.use(erroHandler); 

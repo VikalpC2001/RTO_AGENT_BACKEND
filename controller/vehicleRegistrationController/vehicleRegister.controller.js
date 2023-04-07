@@ -817,7 +817,7 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
                 policyNumber                         :   req.body.policyNumber ? req.body.policyNumber : null,                
                 insuranceStartDate                   :   new Date(req.body.insuranceStartDate?req.body.insuranceStartDate:"10/10/1001").toString().slice(4,15),          
                 insuranceEndDate                     :   new Date(req.body.insuranceEndDate?req.body.insuranceEndDate:"10/10/1001").toString().slice(4,15),            
-                vehicleWorkStatus                    :   "Pending",           
+                vehicleWorkStatus                    :   "PENDING",           
                 comment                              :   req.body.comment ? req.body.comment : null,
                 creationDate                         :   new Date().toString().slice(4,15),              
             }   
@@ -979,6 +979,18 @@ const updateVehicleRegistrationDetails = async(req,res) =>{
     }   
 }
 
+const moveToComplete = (req,res) =>{
+
+     const vehicleRegistrationId = req.query.vehicleRegistrationId;
+
+    sql_state_update = `UPDATE vehicle_registration_details SET nextState = 4, vehicleWorkStatus = 'COMPLETE' WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
+    pool.query(sql_state_update,(err,data)=>{
+        if(err) return res.status(404).send(err);
+        return res.status(200),
+              res.json("Book Completed");
+    })
+} 
+
 module.exports = { 
                     getListOfVehicleRegistrationDetails,
                     getVehicleRegistrationDetailsById,
@@ -986,5 +998,6 @@ module.exports = {
                     addVehicleRegistrationDetails,
                     removeVehicleRegistrationDetails,
                     updateVehicleRegistrationDetails,
-                    exportExcelSheetForVehicleDetails
+                    exportExcelSheetForVehicleDetails,
+                    moveToComplete
                  };

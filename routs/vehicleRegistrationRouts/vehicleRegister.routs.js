@@ -14,5 +14,6 @@ router.delete('/removeVehicleRegistrationDetails',protect,vehicleRegistrationCon
 router.post('/updateVehicleRegistrationDetails',protect,vehicleRegistrationController.updateVehicleRegistrationDetails);
 router.post('/uploadReceipt',rtoReceipt.uploadReceipt);
 router.get('/exportExcelSheetForVehicleDetails',protect,vehicleRegistrationController.exportExcelSheetForVehicleDetails);
+router.post('/moveToComplete',vehicleRegistrationController.moveToComplete);
 
 module.exports = router;

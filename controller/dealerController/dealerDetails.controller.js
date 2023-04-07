@@ -10,7 +10,7 @@ const getDealerDetails = async(req,res) =>{
         sql_queries_getdetails = `SELECT * FROM dealer_details`;
         pool.query(sql_queries_getdetails,(err,data)=>{
         if(err) return res.send(err);
-        console.log(">>>>",data[1]);  
+        console.log(">>>>",data);  
         return res.json(data);
     })
     }catch(error){
