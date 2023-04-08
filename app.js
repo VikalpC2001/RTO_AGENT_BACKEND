@@ -18,8 +18,8 @@ const port = process.env.PORT
 // const key = fs.readFileSync('./private.key');
 // const cert = fs.readFileSync('./13.231.115.90_cert.crt')
 
-app.get('/.well-known/pki-validation/6B1229EE3D3984D4C54E32B121864F4E.txt',(req,res)=>{
-  res.sendFile('/home/ubuntu/RTO_AGENT_BACKEND/6B1229EE3D3984D4C54E32B121864F4E.txt')
+app.get('/.well-known/pki-validation/3B1826F0A0EA5F045A05513B1E3F35CD.txt',(req,res)=>{
+  res.sendFile('/home/ubuntu/RTO_AGENT_BACKEND/3B1826F0A0EA5F045A05513B1E3F35CD.txt')
 })
 
 // const cred = {
