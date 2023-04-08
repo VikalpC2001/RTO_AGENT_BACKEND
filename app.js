@@ -15,20 +15,20 @@ const fs = require('fs');
 const app = express()
 const port = process.env.PORT
 
-// const key = fs.readFileSync('./private.key');
-// const cert = fs.readFileSync('./13.231.115.90_cert.crt')
+const key = fs.readFileSync('./private.key');
+const cert = fs.readFileSync('./certificate.crt')
 
 app.get('/.well-known/pki-validation/3B1826F0A0EA5F045A05513B1E3F35CD.txt',(req,res)=>{
   res.sendFile('/root/RTO_AGENT_BACKEND/3B1826F0A0EA5F045A05513B1E3F35CD.txt')
 })
 
-// const cred = {
-//   key,
-//   cert
-// }
+const cred = {
+  key,
+  cert
+}
 
-// const httpsServer = https. createServer (cred, app)
-//     httpsServer. listen (8443)
+const httpsServer = https. createServer (cred, app)
+    httpsServer. listen (8443)
 
 app.use(cors({
     credentials: true, origin: [
