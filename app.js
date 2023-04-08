@@ -10,6 +10,23 @@ const ddlVehiclePagerouter = require('./routs/ddlVehiclePageRouts/ddlVehiclePage
 const mobileApprouter = require("./routs/mobileAppRouts/mobileApp.routs")
 const cors = require('cors');
 const { notFound, erroHandler } = require('./middlewares/errorMiddleware');
+const https = require ('https')
+const fs = require('fs');
+
+const key = fs.readFileSync('./private.key');
+const cert = fs.readFileSync('./13.231.115.90_cert.crt')
+
+app.get('/.well-known/pki-validation/6B1229EE3D3984D4C54E32B121864F4E.txt',(req,res)=>{
+  res.sendFile('/home/ubuntu/RTO_WhatsApp/6B1229EE3D3984D4C54E32B121864F4E.txt')
+})
+
+const cred = {
+  key,
+  cert
+}
+
+const httpsServer = https. createServer (cred, app)
+    httpsServer. listen (8443)
 
 const app = express()
 const port = process.env.PORT
