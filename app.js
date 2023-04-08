@@ -18,9 +18,9 @@ const port = process.env.PORT
 const key = fs.readFileSync('./private.key');
 const cert = fs.readFileSync('./certificate.crt')
 
-app.get('/.well-known/pki-validation/3B1826F0A0EA5F045A05513B1E3F35CD.txt',(req,res)=>{
-  res.sendFile('/root/RTO_AGENT_BACKEND/3B1826F0A0EA5F045A05513B1E3F35CD.txt')
-})
+// app.get('/.well-known/pki-validation/3B1826F0A0EA5F045A05513B1E3F35CD.txt',(req,res)=>{
+//   res.sendFile('/home/ec2-user/RTO_AGENT_BACKEND/3B1826F0A0EA5F045A05513B1E3F35CD.txt')
+// })
 
 const cred = {
   key,
