@@ -19,7 +19,7 @@ const port = process.env.PORT
 // const cert = fs.readFileSync('./13.231.115.90_cert.crt')
 
 app.get('/.well-known/pki-validation/6B1229EE3D3984D4C54E32B121864F4E.txt',(req,res)=>{
-  res.sendFile('/home/ubuntu/RTO_WhatsApp/6B1229EE3D3984D4C54E32B121864F4E.txt')
+  res.sendFile('/home/ubuntu/RTO_AGENT_BACKEND/6B1229EE3D3984D4C54E32B121864F4E.txt')
 })
 
 // const cred = {
