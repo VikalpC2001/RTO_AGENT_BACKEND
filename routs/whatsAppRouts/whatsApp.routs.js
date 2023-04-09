@@ -122,7 +122,7 @@ router.post('/meta_wa_callbackurl', asyncHandler(async(req, res) => {
                    url:"https://graph.facebook.com/v15.0/"+phon_no_id+"/messages/",
                    data:{
                        messaging_product:"whatsapp",
-                       to:from,
+                       to:"919898266144",
                        type:"document",
                     //    text:{
                     //        body:"Hi.. I'm jay, your message is "+msg_body
