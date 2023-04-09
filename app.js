@@ -17,7 +17,7 @@ const app = express()
 const port = process.env.PORT
 
 const key = fs.readFileSync('./private.key');
-const cert = fs.readFileSync('./13.53.171.161.chained.crt')
+const cert = fs.readFileSync('./13.53.171.161.chained+root .crt');
 
 // app.get('/.well-known/pki-validation/3B1826F0A0EA5F045A05513B1E3F35CD.txt',(req,res)=>{
 //   res.sendFile('/home/ec2-user/RTO_AGENT_BACKEND/3B1826F0A0EA5F045A05513B1E3F35CD.txt')
