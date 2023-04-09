@@ -30,6 +30,9 @@ router.get('/meta_wa_callbackurl', (req, res) => {
     console.log(">>>")
     try {
         console.log('GET: Someone is pinging me!');
+        console.log('reqToken',req.query['hub.verify_token']);
+        console.log('envtoken',process.env.Meta_WA_VerifyToken);
+        console.log('verify',process.env.Meta_WA_VerifyToken == req.query['hub.verify_token']);
         console.log('token',process.env.Meta_WA_VerifyToken === req.query['hub.verify_token']);
         let mode = req.query['hub.mode'];
         let token = req.query['hub.verify_token'];
