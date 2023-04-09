@@ -35,6 +35,8 @@ router.get('/meta_wa_callbackurl', (req, res) => {
         let token = req.query['hub.verify_token'];
         let challenge = req.query['hub.challenge'];
 
+        console.log(">>>>dfsfsa");
+
         if (
             mode &&
             token &&
