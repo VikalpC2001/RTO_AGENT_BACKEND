@@ -2,7 +2,7 @@
 const asyncHandler = require('express-async-handler');
 const axios=require("axios");
 require('dotenv').config();
-
+const token=process.env.Meta_WA_accessToken;
 
 const meta_wa_callbackurl = (req, res) => {
     console.log(">>>")
