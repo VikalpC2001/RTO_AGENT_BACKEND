@@ -8,7 +8,6 @@ require('dotenv').config();
 // import t from '../document_recipt/'
 
 const token=process.env.Meta_WA_accessToken;
-console.log("token",token);
 // const WhatsappCloudAPI = require('../whatsappcloudapi_wrapper');
 // const Whatsapp = new WhatsappCloudAPI({
 //     accessToken: process.env.Meta_WA_accessToken,
@@ -122,14 +121,14 @@ router.post('/meta_wa_callbackurl', asyncHandler(async(req, res) => {
                    url:"https://graph.facebook.com/v15.0/"+phon_no_id+"/messages/",
                    data:{
                        messaging_product:"whatsapp",
-                       to:"919898266144",
+                       to:from,
                        type:"document",
                     //    text:{
                     //        body:"Hi.. I'm jay, your message is "+msg_body
                     //    },
                        document: {
                         link: "https://drive.google.com/uc?export=view&id=1j0SwOtanRKIBmcaJYq3n59Pc1KpYyyUt",
-                        caption: "your-document-caption"
+                        caption: "🖕🖕🖕🖕🖕🖕🖕🖕🖕"
                       }
                       
                    },
