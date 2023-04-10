@@ -39,6 +39,8 @@ const uploadReceipt = async(req, res) => {
                                              SELECT nextState FROM vehicle_registration_details WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
                         pool.query(sql_add_Receipt,(err,data)=>{
                         if(err) return res.json(err);
+                        var gandhi = data[1][0]['nextState'];
+                        console.log(">>>gand",gandhi);
                         var newVariable = [];
                         let result = Object.values(JSON.parse(JSON.stringify(data[1][0])));
                         result.forEach((v) => newVariable.push(v));
