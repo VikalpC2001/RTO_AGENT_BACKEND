@@ -39,7 +39,7 @@ const sendReceipte = asyncHandler(async(req, res) => {
     try {
         await axios({
             method:"POST",
-            url:"https://graph.facebook.com/v15.0/"+phon_no_id+"/messages/",
+            url:"https://graph.facebook.com/v15.0/"+"110836215242868"+"/messages/",
             data:{
                 messaging_product:"whatsapp",
                 to:"919898266144",
