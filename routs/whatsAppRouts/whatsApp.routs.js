@@ -1,18 +1,36 @@
+// 'use strict';
+// const router = require('express').Router();
+// 'use strict';
+// const asyncHandler = require('express-async-handler');
+// const axios=require("axios");
+// const pool = require('../../database');
+// require('dotenv').config();
+// const token = process.env.Meta_WA_accessToken;
+// require('dotenv').config();
+
+
+// // const whatsAppController = require('../../controller/WhatsAppController/whatsApp.controller');
+
+// // router.get('/meta_wa_callbackurl',whatsAppController.sendReceipte);
+// // router.post('/sendReceipte',whatsAppController.sendReceipte);
+
 'use strict';
 const router = require('express').Router();
-'use strict';
 const asyncHandler = require('express-async-handler');
 const axios=require("axios");
-const pool = require('../../database');
+const fs = require('fs');
+const { type } = require('os');
 require('dotenv').config();
-const token = process.env.Meta_WA_accessToken;
-require('dotenv').config();
+// import t from '../document_recipt/'
 
-
-// const whatsAppController = require('../../controller/WhatsAppController/whatsApp.controller');
-
-// router.get('/meta_wa_callbackurl',whatsAppController.sendReceipte);
-// router.post('/sendReceipte',whatsAppController.sendReceipte);
+const token=process.env.Meta_WA_accessToken;
+// const WhatsappCloudAPI = require('../whatsappcloudapi_wrapper');
+// const Whatsapp = new WhatsappCloudAPI({
+//     accessToken: process.env.Meta_WA_accessToken,
+//     senderPhoneNumberId: process.env.Meta_WA_SenderPhoneNumberId,
+//     WABA_ID: process.env.Meta_WA_wabaId, 
+//     graphAPIVersion: 'v15.0'
+// });
 
 router.get('/hello',(req,res)=>{
     console.log(__dirname)
@@ -22,6 +40,34 @@ res.contentType("application/pdf");
 res.send(data);
     // res.sendFile("/home/ubuntu/whatsapp_api_test/document_recipt/recipte_test.pdf")
 })
+
+router.get('/meta_wa_callbackurl', (req, res) => {
+    console.log(">>>")
+    try {
+        console.log('GET: Someone is pinging me!');
+
+        let mode = req.query['hub.mode'];
+        let token = req.query['hub.verify_token'];
+        let challenge = req.query['hub.challenge'];
+
+        if (
+            mode &&
+            token &&
+            mode === 'subscribe' &&
+            process.env.Meta_WA_VerifyToken === token
+        ) {
+            return res.status(200).send(challenge);
+        } else {
+            return res.sendStatus(403);
+        }
+
+    } catch (error) {
+        console.error({error})
+        return res.sendStatus(500);
+    }
+});
+
+
 
 router.post('/meta_wa_callbackurl', asyncHandler(async(req, res) => {
     console.log(">>><<<")
