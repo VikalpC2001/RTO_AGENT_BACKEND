@@ -40,15 +40,14 @@ const getWhtsappMsgData = async(req,res) =>{
 
     const receiptId = res.locals.id;
     console.log("local2",receiptId);
-    const sql_getMsg_data = `SELECT UPPER(vehicle_registration_details.vehicleRegistrationNumber) AS vehicleRegistrationNumber, COALESCE(dealer_details.dealerFirmName,privateCustomerName) AS "Dealer/Customer", dealer_details.dealerWhatsAppNumber, rto_receipt_data.receiptURL, vehicle_registration_details.clientWhatsAppNumber, DATE_FORMAT(appointmentDate, '%d-%M-%Y') AS appointmentDate FROM rto_receipt_data
+    const sql_getMsg_data = `SELECT UPPER(vehicle_registration_details.vehicleRegistrationNumber) AS vehicleRegistrationNumber, COALESCE(dealer_details.dealerFirmName,privateCustomerName) AS "Dealer/Customer", dealer_details.dealerWhatsAppNumber, rto_receipt_data.receiptURL as URL, vehicle_registration_details.clientWhatsAppNumber, DATE_FORMAT(appointmentDate, '%d-%M-%Y') AS appointmentDate FROM rto_receipt_data
                               LEFT JOIN vehicle_registration_details ON vehicle_registration_details.vehicleRegistrationId = rto_receipt_data.vehicleRegistrationId
                               LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
                               WHERE rto_receipt_data.receiptId = '${receiptId}'`;
-                              console.log(">>>",sql_getMsg_data);
     pool.query(sql_getMsg_data,(err,data)=>{
         if(err) return res.status(404).send(err);
-        return res.status(200),
-               res.json(data);
+        var id = data[0].URL
+        console.log(">>>>>>>>>>>>>",id);
     })
 }
 
@@ -66,6 +65,7 @@ const sendReceipte = asyncHandler(async(req, res) => {
             // return res.status(200),
             //        res.json(data);
             const vehicleNumber = data[0].vehicleRegistrationNumber;
+            const pdfURL = data[0].URL;
             
     // })
         await axios({
@@ -100,7 +100,7 @@ const sendReceipte = asyncHandler(async(req, res) => {
              //        body:"Hi.. I'm jay, your message is "+msg_body
              //    },
                 document: {
-                 link: "https://drive.google.com/uc?export=view&id=1j0SwOtanRKIBmcaJYq3n59Pc1KpYyyUt",
+                 link: pdfURL,
                  caption: "Vehicle Number = "+vehicleNumber+"dealerName"
                }
                

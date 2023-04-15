@@ -14,7 +14,7 @@ router.post('/addVehicleRegistrationDetails',protect,vehicleRegistrationControll
 router.delete('/removeVehicleRegistrationDetails',protect,vehicleRegistrationController.removeVehicleRegistrationDetails);
 router.post('/updateVehicleRegistrationDetails',protect,vehicleRegistrationController.updateVehicleRegistrationDetails,formController.genrateTTOform);
 router.get('/fillUpdateDetailForVehicle',protect,vehicleRegistrationController.fillUpdateDetailForVehicle);
-router.post('/uploadReceipt',protect,rtoReceipt.uploadReceipt,whatsappController.getWhtsappMsgData);
+router.post('/uploadReceipt',protect,rtoReceipt.uploadReceipt,whatsappController.sendReceipte);
 router.get('/exportExcelSheetForVehicleDetails',protect,vehicleRegistrationController.exportExcelSheetForVehicleDetails);
 router.get('/moveToComplete',vehicleRegistrationController.moveToComplete);
 router.get('/WhatsAppHyy',vehicleRegistrationController.WhatsAppHyy);
