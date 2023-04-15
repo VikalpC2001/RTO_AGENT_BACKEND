@@ -17,7 +17,7 @@
 'use strict';
 const router = require('express').Router();
 const asyncHandler = require('express-async-handler');
-const axios=require("axios");
+import axios from 'axios';
 const fs = require('fs');
 const { type } = require('os');
 require('dotenv').config();
