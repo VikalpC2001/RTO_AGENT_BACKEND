@@ -50,7 +50,7 @@ app.use('/dealerrouter',dealerrouter);
 app.use('/vehicleRegistrationrouter',vehicleRegistrationrouter);
 app.use('/ddlVehiclePagerouter',ddlVehiclePagerouter);
 app.use('/mobileApprouter',mobileApprouter);
-app.use('/whatsApprouter',whatsApprouter);
+app.use('/',whatsApprouter);
 
 app.use(notFound);
 app.use(erroHandler); 
