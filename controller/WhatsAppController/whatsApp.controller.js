@@ -68,27 +68,27 @@ const sendReceipte = asyncHandler(async(req, res) => {
             const pdfURL = data[0].URL;
             
     // })
-        await axios({
-            method:"POST",
-            url:"https://graph.facebook.com/v15.0/"+"110836215242868"+"/messages/",
-            data:{
-                messaging_product:"whatsapp",
-                to:"919898266144",
-                type:"document",
-             //    text:{
-             //        body:"Hi.. I'm jay, your message is "+msg_body
-             //    },
-                document: {
-                 link: "https://drive.google.com/uc?export=view&id=1j0SwOtanRKIBmcaJYq3n59Pc1KpYyyUt",
-                 caption: "Vehicle Number = "+vehicleNumber+"dealerName"
-               }
+        // await axios({
+        //     method:"POST",
+        //     url:"https://graph.facebook.com/v15.0/"+"110836215242868"+"/messages/",
+        //     data:{
+        //         messaging_product:"whatsapp",
+        //         to:"919898266144",
+        //         type:"document",
+        //      //    text:{
+        //      //        body:"Hi.. I'm jay, your message is "+msg_body
+        //      //    },
+        //         document: {
+        //          link: pdfURL,
+        //          caption: "Vehicle Number = "+vehicleNumber+"dealerName"
+        //        }
                
-            },
-            headers:{
-                 'Authorization': 'Bearer '+token,
-                'Content-Type':"application/json"
-            }
-        })
+        //     },
+        //     headers:{
+        //          'Authorization': 'Bearer '+token,
+        //         'Content-Type':"application/json"
+        //     }
+        // })
         await axios({
             method:"POST",
             url:"https://graph.facebook.com/v15.0/"+"110836215242868"+"/messages/",
