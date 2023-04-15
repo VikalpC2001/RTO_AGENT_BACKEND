@@ -9,10 +9,19 @@ const token = process.env.Meta_WA_accessToken;
 require('dotenv').config();
 
 
-const whatsAppController = require('../../controller/WhatsAppController/whatsApp.controller');
+// const whatsAppController = require('../../controller/WhatsAppController/whatsApp.controller');
 
-router.get('/meta_wa_callbackurl',whatsAppController.sendReceipte);
+// router.get('/meta_wa_callbackurl',whatsAppController.sendReceipte);
 // router.post('/sendReceipte',whatsAppController.sendReceipte);
+
+router.get('/hello',(req,res)=>{
+    console.log(__dirname)
+    // var data =fs.readFileSync('/Users/jayparmar/Desktop/whatsapp/document_recipt/recipte_test.pdf');
+    var data =fs.readFileSync('/home/ubuntu/whatsapp_api_test/document_recipt/recipte_test.pdf');
+res.contentType("application/pdf");
+res.send(data);
+    // res.sendFile("/home/ubuntu/whatsapp_api_test/document_recipt/recipte_test.pdf")
+})
 
 router.post('/meta_wa_callbackurl', asyncHandler(async(req, res) => {
     console.log(">>><<<")
