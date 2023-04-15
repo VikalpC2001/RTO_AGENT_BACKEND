@@ -4,7 +4,7 @@ const {protect} = require("../../middlewares/authMiddlewares.js")
 
 const dealerController = require("../../controller/dealerController/dealerDetails.controller")
 
-router.get('/getDealerDetails',protect,dealerController.getDealerDetails);
+router.get('/fillUpdateDetailForDealer',protect,dealerController.fillUpdateDetailForDealer);
 router.post('/addDealerDetails',protect,dealerController.addDealerDetails);
 router.get('/getDealerDetailsByAgentId',protect,dealerController.getDealerDetailsByAgentId);
 router.delete('/removeDealerDetails',protect,dealerController.removeDealerDetails);

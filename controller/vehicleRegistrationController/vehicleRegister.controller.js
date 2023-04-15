@@ -31,10 +31,14 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                 endDate      :  new Date(req.query.endDate?req.query.endDate:null).toString().slice(4,15),
                 dealerId     :  req.query.dealerId,
                 workStatus   :  req.query.workStatus,
-                workCategory :  req.query.workCategory
+                workCategory :  req.query.workCategory,
+                searchWord   :  req.query.searchWord
             }
+            if(req.query.searchWord){
+
+                sql_queries_getVehicleDetailsPagination = `SELECT count(*) as numRows FROM vehicle_registration_details WHERE vehicle_registration_details.agentId = '${agentId}' AND vehicleRegistrationNumber LIKE'%`+data.searchWord+`%'`
             
-            if(req.query.workCategory && req.query.workStatus && req.query.startDate && req.query.endDate && req.query.dealerId){
+            }else if(req.query.workCategory && req.query.workStatus && req.query.startDate && req.query.endDate && req.query.dealerId){
 
                 sql_queries_getVehicleDetailsPagination = `SELECT count(*) as numRows FROM vehicle_registration_details WHERE vehicle_registration_details.agentId = '${agentId}' AND vehicle_registration_details.dealerId = '${data.dealerId}' AND currentState = ${data.workCategory} AND vehicleWorkStatus = '${data.workStatus}' AND vehicleRegistrationCreationDate BETWEEN STR_TO_DATE('${data.startDate}','%b %d %Y') AND STR_TO_DATE('${data.endDate}','%b %d %Y')`;
 
@@ -110,7 +114,18 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                 }else{
                     const numRows = rows[0].numRows;
                     const numPages = Math.ceil(numRows / numPerPage);
-                    if(req.query.workCategory && req.query.workStatus && req.query.startDate && req.query.endDate && req.query.dealerId){
+                    if(req.query.searchWord){
+                        sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
+                                                    COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus  
+                                                    FROM vehicle_registration_details
+                                                    LEFT JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
+                                                    LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
+                                                    LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
+                                                    WHERE vehicle_registration_details.agentId = '${agentId}' AND vehicleRegistrationNumber LIKE'%`+data.searchWord+`%'
+                                                    GROUP BY work_list.vehicleRegistrationId ORDER BY RIGHT(vehicleRegistrationNumber,4) LIMIT ${limit}`;
+        
+                    }
+                    else if(req.query.workCategory && req.query.workStatus && req.query.startDate && req.query.endDate && req.query.dealerId){
 
                         sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) AS vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
                                             COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus  
@@ -431,7 +446,7 @@ const exportExcelSheetForVehicleDetails = (req, res) => {
                 endDate      :  new Date(req.query.endDate?req.query.endDate:null).toString().slice(4,15),
                 dealerId     :  req.query.dealerId,
                 workStatus   :  req.query.workStatus,
-                workCategory :  req.query.workCategory
+                workCategory :  req.query.workCategory,         
             }
 
             if(req.query.workCategory && req.query.workStatus && req.query.startDate && req.query.endDate && req.query.dealerId){
@@ -962,11 +977,99 @@ const fillUpdateDetailForVehicle = async(req,res)=>{
     })
 }
 
-const updateVehicleRegistrationDetails = async(req,res) =>{
+const updateVehicleRegistrationDetails = async(req,res,next) =>{
 
     try{
+        const vehicleRegistrationId = req.body.vehicleRegistrationId;
+
+        const isRRF = ()=>{
+            if(req.body.RRF == true){
+                return true;
+            }else{
+                return false;
+            }
+        }
+
+        const isTTO = ()=>{
+            if(req.body.TO == true){
+                return true;
+            }else{
+                return false;
+            }
+        }
+
+        const isOther = ()=>{
+            if(req.body.HPT == true || 
+               req.body.DRC == true || 
+               req.body.addressChange == true || 
+               req.body.HPA == true || 
+               req.body.HPC == true || 
+               req.body.NOC == true ||
+               req.body.AV == true){
+                return true;
+               }else{
+                return false;
+               }
+        }
+
+        const getCurrentState = ()=>{
+            if(isRRF()){
+                return 1;
+            }else if(isTTO()){
+                return 2;
+            }else if(isOther()){
+                return 3;
+            }else if(isTTO() && isOther){
+                return 2;
+            }else{
+                return 3;
+            }
+        }
+
+        const getNextState = ()=>{
+            if(getCurrentState() == 1 && isTTO()){
+                return 2;
+            }else if(getCurrentState() == 1 && isOther()){
+                return 3;
+            }else{
+                return 4;
+            }
+        }
+
+        const insertWorkList = ()=>{
+            var row = []
+    
+            if(req.body.TO){
+                row.push("('"+vehicleRegistrationId+"',1)");
+            }if(req.body.HPT){
+                row.push("('"+vehicleRegistrationId+"',2)");
+            }if(req.body.DRC){
+                row.push("('"+vehicleRegistrationId+"',3)");
+            }if(req.body.addressChange){
+                row.push("('"+vehicleRegistrationId+"',4)");
+            }if(req.body.HPA){
+                row.push("('"+vehicleRegistrationId+"',5)")
+            }if(req.body.HPC){
+                row.push("('"+vehicleRegistrationId+"',6)");
+            }if(req.body.RRF){
+                row.push("('"+vehicleRegistrationId+"',7)");
+            }if(req.body.NOC){
+                row.push("('"+vehicleRegistrationId+"',8)");
+            }if(req.body.AV){
+                row.push("('"+vehicleRegistrationId+"',9)");
+            }
+            // console.log(row)
+            var string = ''
+            row.forEach((data,index) => {
+                if(index == 0)
+                    string=string+data;
+                else
+                    string=string+','+data;
+            });
+            return string;
+        }
+
         const data = {
-                vehicleRegistrationId       :   req.query.vehicleRegistrationId,
                 vehicleRegistrationNumber   :   req.body.vehicleRegistrationNumber,        
                 vehicleChassisNumber        :   req.body.vehicleChassisNumber,        
                 vehicleEngineNumber         :   req.body.vehicleEngineNumber,         
@@ -975,6 +1078,11 @@ const updateVehicleRegistrationDetails = async(req,res) =>{
                 vehicleMake                 :   req.body.vehicleMake,                 
                 vehicleModel                :   req.body.vehicleModel,                
                 vehicleRegistrationDate     :   new Date(req.body.vehicleRegistrationDate?req.body.vehicleRegistrationDate:"01/01/2001").toString().slice(4,15),
+                currentState                :   getCurrentState(),
+                nextState                   :   getNextState(),
+                rrf                         :   isRRF() ? 1 : 0,
+                tto                         :   isTTO() ? 1 : 0,
+                Other                       :   isOther() ? 1 : 0,    
                 sellerFirstName             :   req.body.sellerFirstName,             
                 sellerMiddleName            :   req.body.sellerMiddleName,            
                 sellerLastName              :   req.body.sellerLastName,              
@@ -1006,7 +1114,12 @@ const updateVehicleRegistrationDetails = async(req,res) =>{
                                                                                    vehicleCategory = ${data.vehicleCategory},          
                                                                                    vehicleMake = '${data.vehicleMake}',              
                                                                                    vehicleModel = '${data.vehicleModel}',             
-                                                                                   vehicleRegistrationDate = STR_TO_DATE('${data.vehicleRegistrationDate}','%b %d %Y'),         
+                                                                                   vehicleRegistrationDate = STR_TO_DATE('${data.vehicleRegistrationDate}','%b %d %Y'),
+                                                                                   currentState = ${data.currentState},
+                                                                                   nextState = ${data.nextState},
+                                                                                   RRF = ${data.rrf},
+                                                                                   TTO = ${data.tto}, 
+                                                                                   Other = ${data.Other},         
                                                                                    sellerFirstName = '${data.sellerFirstName}',          
                                                                                    sellerMiddleName = '${data.sellerMiddleName}',         
                                                                                    sellerLastName = '${data.sellerLastName}',           
@@ -1030,10 +1143,56 @@ const updateVehicleRegistrationDetails = async(req,res) =>{
                                                                                    insuranceStartDate = STR_TO_DATE(NULLIF('${data.insuranceStartDate}','Oct 10 1001'),'%b %d %Y'),       
                                                                                    insuranceEndDate = STR_TO_DATE(NULLIF('${data.insuranceEndDate}','Oct 10 1001'),'%b %d %Y'),
                                                                                    comment = '${data.comment}'
-                                                                                   WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}'`;
+                                                                                   WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
         pool.query(sql_querry_updatedetails,(err,data) =>{ 
             if(err) return res.status(404).send(err);
-            return res.json(data)
+                if(req.body.TO || req.body.HPT || req.body.HPA ||
+                   req.body.HPC || req.body.DRC || req.body.AV || 
+                   req.body.NOC || req.body.RRF || req.body.addressChange){
+                sql_delete_Worklist = `DELETE FROM work_list WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
+                pool.query(sql_delete_Worklist,(err,data)=>{
+                    if(err) return res.status(404).send(err);
+                sql_add_workList = `INSERT INTO work_list (vehicleRegistrationId, workId) VALUES ${insertWorkList()}`;
+                pool.query(sql_add_workList,(err,data)=>{
+                    if(err) return res.status(404).send(err);
+                    sql_getTTOdriveId = `SELECT pdfGoogleDriveId as DriveId FROM tto_form_data WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
+                    pool.query(sql_getTTOdriveId,(err,data) =>{
+                        if(err) return res.send(err);
+                        // const ttoGoogledriveId1 = data[0];
+                        // const gDriveId = ttoGoogledriveId1;
+                        // console.log("ttttttttttt",gDriveId);
+                        data.map(a => {
+                            if(data && data[0] && data[0].DriveId ? true : false){
+                                deleteGoogleFileforTTO(a.DriveId)
+                            }}
+                            );
+                            req.query.agentEmailId = pool.query(`SELECT vehicleRegistrationId FROM vehicle_registration_details WHERE vehicleRegistrationId= '${vehicleRegistrationId}'`, (err, row)=>{
+                                if (row && row.length) {
+                                    sql_queries_removedetails = `DELETE FROM tto_form_data WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
+                                    pool.query(sql_queries_removedetails,(err,data)=>{
+                                if(data){
+                                if(err) return res.send(err);
+                                res.locals.id = vehicleRegistrationId;
+                                if(req.body.TO == true){
+                                    next();
+                                }else{
+                                    return res.send("updated");
+                                }
+                                // return res.json({status:200, message:"Vehicle Deleted Successfully"});
+                                }
+                            })   
+                              }else {
+                                    return res.send('Vehicle is Already Deleted');
+                              }
+                            })
+                    })
+                })
+                })
+            }else{
+                return res.send("updated done");
+            }
+
+            // return res.json(data)
         })
     }catch(error){
         throw new Error(error);
@@ -1067,5 +1226,5 @@ module.exports = {
                     exportExcelSheetForVehicleDetails,
                     moveToComplete,
                     WhatsAppHyy,
-                    deleteGoogleFileforTTO
+                    deleteGoogleFileforTTO,
                  };

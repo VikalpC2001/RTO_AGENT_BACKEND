@@ -4,15 +4,16 @@ const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
 const GoogleDelete = require("../vehicleRegistrationController/vehicleRegister.controller");
 
-const getDealerDetails = async(req,res) =>{
+const fillUpdateDetailForDealer = async(req,res) =>{
 
     try{
-        const search = req.body.search;
-        sql_queries_getdetails = `SELECT * FROM dealer_details`;
+        const dealerId = req.query.dealerId;
+        sql_queries_getdetails = `SELECT dealerFirstName,dealerLastName,dealerGender,dealerFirmName,dealerFirmAddressLine1,dealerFirmAddressLine2,dealerFirmState,dealerFirmCity,dealerFirmPincode,dealerDisplayName,dealerMobileNumber,dealerWhatsAppNumber,dealerEmailId FROM dealer_details 
+                                  WHERE dealerId = '${dealerId}'`;
         pool.query(sql_queries_getdetails,(err,data)=>{
         if(err) return res.send(err);
         console.log(">>>>",data);  
-        return res.json(data);
+        return res.json(data[0]);
     })
     }catch(error){
         throw new Error('UnsuccessFull',error);
@@ -169,8 +170,9 @@ const removeDealerDetails = async(req,res)=>{
             return e.DriveId !== null;
           });
           console.log("goglDiiiiiiiiiiiid",GoogleDId);
-          GoogleDId.map(a => {GoogleDelete.deleteGoogleFileforTTO(a.DriveId)});
-       
+          if(GoogleDId){
+            GoogleDId.map(a => {GoogleDelete.deleteGoogleFileforTTO(a.DriveId)});
+          }
             req.query.agentEmailId = pool.query(`SELECT dealerId FROM dealer_details WHERE dealer_details.dealerId = '${dealerId}'`, (err, row)=>{
                 if (row && row.length) {
                     sql_queries_removedetails = `DELETE FROM dealer_details WHERE dealer_details.dealerId = '${dealerId}'`;
@@ -231,17 +233,17 @@ const updateDealerDetails = async(req,res) =>{
                                                                     dealerFirmName = '${data.dealerFirmName}', 
                                                                     dealerFirmAddressLine1 = '${data.dealerFirmAddressLine1}', 
                                                                     dealerFirmAddressLine2 = '${data.dealerFirmAddressLine2}', 
-                                                                    dealerFirmState = '${data.dealerFirmState}', 
-                                                                    dealerFirmCity = '${data.dealerFirmCity}', 
-                                                                    dealerFirmPincode = '${data.dealerFirmPincode}', 
+                                                                    dealerFirmState = ${data.dealerFirmState}, 
+                                                                    dealerFirmCity = ${data.dealerFirmCity}, 
+                                                                    dealerFirmPincode = ${data.dealerFirmPincode}, 
                                                                     dealerDisplayName = '${data.dealerDisplayName}', 
                                                                     dealerMobileNumber = '${data.dealerMobileNumber}', 
                                                                     dealerWhatsAppNumber = '${data.dealerWhatsAppNumber}', 
                                                                     dealerEmailId = '${data.dealerEmailId}' 
                                                                     WHERE dealerId = '${data.dealerId}'`;
         pool.query(sql_querry_updatedetails,(err,data) =>{ 
-            if(err) return res.json(err)
-            return res.json(data)
+            if(err) return res.status(404).send(err);
+            return res.send("Dealer Updated");
         })
     }catch(error){
         throw new Error('UnsuccessFull',error);
@@ -274,7 +276,7 @@ const ddlDealerByAgentId = async(req,res) =>{
 
 
 module.exports = { 
-                   getDealerDetails, 
+                   fillUpdateDetailForDealer, 
                    addDealerDetails, 
                    getDealerDetailsByAgentId, 
                    removeDealerDetails, 

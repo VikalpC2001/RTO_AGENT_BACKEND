@@ -260,7 +260,7 @@ const genrateTTOform = async(req,res) => {
                  pool.query(sql_add_PDF,(err,data)=>{
                    if(err) return res.json(err);
                    return res.status(200),
-                          res.json("Data Inserted Successfully");
+                          res.json("Ok");
                  })
               });
     })

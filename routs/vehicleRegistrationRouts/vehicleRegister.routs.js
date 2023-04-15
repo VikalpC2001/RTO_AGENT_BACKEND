@@ -12,7 +12,7 @@ router.get('/getVehicleRegistrationDetailsById',protect,vehicleRegistrationContr
 router.get('/getVehicleRegistrationDetailsBydealerId',protect,vehicleRegistrationController.getVehicleRegistrationDetailsBydealerId);
 router.post('/addVehicleRegistrationDetails',protect,vehicleRegistrationController.addVehicleRegistrationDetails,formController.genrateTTOform);
 router.delete('/removeVehicleRegistrationDetails',protect,vehicleRegistrationController.removeVehicleRegistrationDetails);
-router.post('/updateVehicleRegistrationDetails',protect,vehicleRegistrationController.updateVehicleRegistrationDetails);
+router.post('/updateVehicleRegistrationDetails',protect,vehicleRegistrationController.updateVehicleRegistrationDetails,formController.genrateTTOform);
 router.get('/fillUpdateDetailForVehicle',protect,vehicleRegistrationController.fillUpdateDetailForVehicle);
 router.post('/uploadReceipt',protect,rtoReceipt.uploadReceipt,whatsappController.getWhtsappMsgData);
 router.get('/exportExcelSheetForVehicleDetails',protect,vehicleRegistrationController.exportExcelSheetForVehicleDetails);

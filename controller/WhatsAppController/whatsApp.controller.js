@@ -57,7 +57,7 @@ const sendReceipte = asyncHandler(async(req, res) => {
 
         const receiptId = res.locals.id;
         console.log("local2",receiptId);
-        const sql_getMsg_data = `SELECT UPPER(vehicle_registration_details.vehicleRegistrationNumber) AS vehicleRegistrationNumber, COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer", rto_receipt_data.receiptURL, rto_receipt_data.appointmentDate FROM rto_receipt_data
+        const sql_getMsg_data = `SELECT UPPER(vehicle_registration_details.vehicleRegistrationNumber) AS vehicleRegistrationNumber, COALESCE(dealer_details.dealerFirmName,privateCustomerName) AS "Dealer/Customer", dealer_details.dealerWhatsAppNumber, rto_receipt_data.receiptURL, vehicle_registration_details.clientWhatsAppNumber, DATE_FORMAT(appointmentDate, '%d-%M-%Y') AS appointmentDate FROM rto_receipt_data
                                  LEFT JOIN vehicle_registration_details ON vehicle_registration_details.vehicleRegistrationId = rto_receipt_data.vehicleRegistrationId
                                  LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
                                  WHERE rto_receipt_data.receiptId = '${receiptId}'`;
