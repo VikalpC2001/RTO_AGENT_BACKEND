@@ -31,13 +31,13 @@ const cred = {
 const httpsServer = https. createServer (cred, app)
     httpsServer. listen (8443)
 
-app.use(cors({
-    credentials: true, origin: [
-      "http://localhost:3000",
-      "http://localhost:5000"
-    ],
-    exposedHeaders: ["set-cookie"],
-  }));
+// app.use(cors({
+//     credentials: true, origin: [
+//       "http://localhost:3000",
+//       "http://localhost:5000"
+//     ],
+//     exposedHeaders: ["set-cookie"],
+//   }));
 
 app.use(bodyparser.urlencoded({extended: false}))
 app.use(bodyparser.json())
