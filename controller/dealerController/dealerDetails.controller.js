@@ -2,6 +2,7 @@ const mysql = require('mysql');
 const pool = require('../../database');
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
+const GoogleDelete = require("../vehicleRegistrationController/vehicleRegister.controller");
 
 const getDealerDetails = async(req,res) =>{
 
@@ -146,21 +147,64 @@ const addDealerDetails = async(req,res) =>{
     }                         
 }
 
+
 const removeDealerDetails = async(req,res)=>{
 
     try{
-        const data = {
-            dealerId : req.body.dealerId
-        }
-        sql_queries_removedetails = `DELETE FROM dealer_details WHERE dealerId = '${data.dealerId}'`;
-        pool.query(sql_queries_removedetails,(err,data)=>{
-            if(err) return res.send(err);
-            return res.json(data);
-        })
+        const  dealerId = req.query.dealerId;
+        const get_googleDriveId = `SELECT tto_form_data.pdfGoogleDriveId AS DriveId FROM dealer_details
+                                   INNER JOIN vehicle_registration_details ON vehicle_registration_details.dealerId = dealer_details.dealerId
+                                   LEFT JOIN tto_form_data ON tto_form_data.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
+                                   WHERE vehicle_registration_details.dealerId = '${dealerId}';
+                                   SELECT rto_receipt_data.receiptGoogleDriveId AS DriveId FROM dealer_details
+                                   INNER JOIN vehicle_registration_details ON vehicle_registration_details.dealerId = dealer_details.dealerId
+                                   LEFT JOIN rto_receipt_data ON rto_receipt_data.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
+                                   WHERE vehicle_registration_details.dealerId = '${dealerId}'`;
+        pool.query(get_googleDriveId,(err,data) =>{
+        if(err) return res.send(err);
+        const ttoGoogledriveId1 = data[0];
+        const receiptGoogledriveId2 = data[1];
+        const allId = ttoGoogledriveId1.concat(receiptGoogledriveId2);
+        var GoogleDId = allId.filter(e => {
+            return e.DriveId !== null;
+          });
+          console.log("goglDiiiiiiiiiiiid",GoogleDId);
+          GoogleDId.map(a => {GoogleDelete.deleteGoogleFileforTTO(a.DriveId)});
+       
+            req.query.agentEmailId = pool.query(`SELECT dealerId FROM dealer_details WHERE dealer_details.dealerId = '${dealerId}'`, (err, row)=>{
+                if (row && row.length) {
+                    sql_queries_removedetails = `DELETE FROM dealer_details WHERE dealer_details.dealerId = '${dealerId}'`;
+                    pool.query(sql_queries_removedetails,(err,data)=>{
+                if(data){
+                if(err) return res.send(err);
+                return res.json({status:200, message:"Dealer Deleted Successfully"});
+                }
+            })   
+              }else {
+                    return res.send('Dealer is Already Deleted');
+              }
+            })
+    })
     }catch(error){
-        throw new Error('UnsuccessFull',error);
+        throw new Error(error);
     }                      
 }
+
+// const removeDealerDetails = async(req,res)=>{
+
+//     try{
+//         const data = {
+//             dealerId : req.query.dealerId
+//         }
+//         sql_queries_removedetails = `DELETE FROM dealer_details WHERE dealerId = '${data.dealerId}'`;
+//         pool.query(sql_queries_removedetails,(err,data)=>{
+//             if(err) return res.send(err);
+//             return res.json(data);
+//         })
+//     }catch(error){
+//         throw new Error('UnsuccessFull',error);
+//     }                      
+// }
 
 const updateDealerDetails = async(req,res) =>{
 

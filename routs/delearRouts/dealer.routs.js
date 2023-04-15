@@ -7,7 +7,7 @@ const dealerController = require("../../controller/dealerController/dealerDetail
 router.get('/getDealerDetails',protect,dealerController.getDealerDetails);
 router.post('/addDealerDetails',protect,dealerController.addDealerDetails);
 router.get('/getDealerDetailsByAgentId',protect,dealerController.getDealerDetailsByAgentId);
-router.post('/removeDealerDetails',protect,dealerController.removeDealerDetails);
+router.delete('/removeDealerDetails',protect,dealerController.removeDealerDetails);
 router.get('/getDealerDetailsById',protect,dealerController.getDealerDetailsById);
 router.get('/ddlDealerByAgentId',protect,dealerController.ddlDealerByAgentId);
 router.post('/updateDealerDetails',protect,dealerController.updateDealerDetails);

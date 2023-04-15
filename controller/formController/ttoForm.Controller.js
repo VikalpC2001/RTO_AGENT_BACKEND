@@ -266,4 +266,4 @@ const genrateTTOform = async(req,res) => {
     })
 } 
 
-module.exports = { genrateTTOform };
+module.exports = { genrateTTOform }; 

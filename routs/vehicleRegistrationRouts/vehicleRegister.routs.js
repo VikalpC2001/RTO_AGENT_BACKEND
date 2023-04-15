@@ -5,6 +5,7 @@ const {protect} = require("../../middlewares/authMiddlewares.js");
 const vehicleRegistrationController = require('../../controller/vehicleRegistrationController/vehicleRegister.controller');
 const formController = require("../../controller/formController/ttoForm.Controller");
 const rtoReceipt = require("../../controller/rtoReceiptController/rtoReceipt.controller");
+const whatsappController = require("../../controller/WhatsAppController/whatsApp.controller");
 
 router.get('/getListOfVehicleRegistrationDetails',protect,vehicleRegistrationController.getListOfVehicleRegistrationDetails);
 router.get('/getVehicleRegistrationDetailsById',protect,vehicleRegistrationController.getVehicleRegistrationDetailsById);
@@ -12,9 +13,10 @@ router.get('/getVehicleRegistrationDetailsBydealerId',protect,vehicleRegistratio
 router.post('/addVehicleRegistrationDetails',protect,vehicleRegistrationController.addVehicleRegistrationDetails,formController.genrateTTOform);
 router.delete('/removeVehicleRegistrationDetails',protect,vehicleRegistrationController.removeVehicleRegistrationDetails);
 router.post('/updateVehicleRegistrationDetails',protect,vehicleRegistrationController.updateVehicleRegistrationDetails);
-router.post('/uploadReceipt',rtoReceipt.uploadReceipt);
+router.get('/fillUpdateDetailForVehicle',protect,vehicleRegistrationController.fillUpdateDetailForVehicle);
+router.post('/uploadReceipt',protect,rtoReceipt.uploadReceipt,whatsappController.getWhtsappMsgData);
 router.get('/exportExcelSheetForVehicleDetails',protect,vehicleRegistrationController.exportExcelSheetForVehicleDetails);
-router.post('/moveToComplete',vehicleRegistrationController.moveToComplete);
-router.get('/WhatsAppHyy',vehicleRegistrationController.WhatsAppHyy);
+router.get('/moveToComplete',vehicleRegistrationController.moveToComplete);
+router.post('/WhatsAppHyy',vehicleRegistrationController.WhatsAppHyy);
 
 module.exports = router;

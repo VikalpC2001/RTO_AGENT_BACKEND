@@ -2,7 +2,17 @@ const mysql = require('mysql');
 const pool = require('../../database');
 const jwt = require("jsonwebtoken");
 const excelJS = require("exceljs");
+var {google} = require('googleapis');
 const asyncHandler = require('express-async-handler');
+
+const authenticateGoogle = () => {
+    const auth = new google.auth.GoogleAuth({
+    //   keyFile: process.env.GOOGLE_SERVICE,
+      keyFile: `/Users/vikalp/Desktop/RTO_AGENT_BACKEND/service-account.json`,
+      scopes: "https://www.googleapis.com/auth/drive",
+    });
+    return auth;
+  };
 
 const getListOfVehicleRegistrationDetails = async(req,res)=>{
     try{
@@ -103,7 +113,7 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                     if(req.query.workCategory && req.query.workStatus && req.query.startDate && req.query.endDate && req.query.dealerId){
 
                         sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) AS vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber  
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus  
                                             FROM vehicle_registration_details
                                             INNER JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             INNER JOIN rto_work_data ON rto_work_data.workId = work_list.workId
@@ -114,7 +124,7 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                     }else if(req.query.startDate && req.query.endDate && req.query.dealerId && req.query.workStatus){
 
                         sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber   
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus   
                                             FROM vehicle_registration_details
                                             LEFT JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
@@ -125,7 +135,7 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                     }else if(req.query.workCategory && req.query.startDate && req.query.endDate && req.query.dealerId){
 
                         sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) AS vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber  
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus  
                                             FROM vehicle_registration_details
                                             INNER JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             INNER JOIN rto_work_data ON rto_work_data.workId = work_list.workId
@@ -136,7 +146,7 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                     }else if(req.query.workCategory && req.query.startDate && req.query.endDate && req.query.workStatus){
 
                         sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) AS vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber  
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus  
                                             FROM vehicle_registration_details
                                             INNER JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             INNER JOIN rto_work_data ON rto_work_data.workId = work_list.workId
@@ -147,7 +157,7 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                     }else if(req.query.workCategory && req.query.startDate && req.query.endDate){
 
                         sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) AS vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber  
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus 
                                             FROM vehicle_registration_details
                                             INNER JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             INNER JOIN rto_work_data ON rto_work_data.workId = work_list.workId
@@ -158,7 +168,7 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                     }else if(req.query.dealerId && req.query.startDate && req.query.endDate){
 
                         sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber  
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus 
                                             FROM vehicle_registration_details
                                             LEFT JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
@@ -169,7 +179,7 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                     }else if(req.query.workStatus && req.query.startDate && req.query.endDate){
 
                         sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber  
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus 
                                             FROM vehicle_registration_details
                                             LEFT JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
@@ -180,7 +190,7 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                     }else if(req.query.startDate && req.query.endDate){
 
                         sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber   
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus  
                                             FROM vehicle_registration_details
                                             LEFT JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
@@ -191,7 +201,7 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                     }else if(req.query.workCategory && req.query.dealerId){
 
                         sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) AS vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber  
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus 
                                             FROM vehicle_registration_details
                                             INNER JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             INNER JOIN rto_work_data ON rto_work_data.workId = work_list.workId
@@ -202,7 +212,7 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                     }else if(req.query.workCategory && req.query.workStatus){
 
                         sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) AS vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber  
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus 
                                             FROM vehicle_registration_details
                                             INNER JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             INNER JOIN rto_work_data ON rto_work_data.workId = work_list.workId
@@ -213,7 +223,7 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                     }else if(req.query.dealerId && req.query.workStatus){
 
                         sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber   
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus  
                                             FROM vehicle_registration_details
                                             LEFT JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
@@ -224,7 +234,7 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                     }else if(req.query.workCategory){
 
                         sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) AS vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber 
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus
                                             FROM vehicle_registration_details
                                             INNER JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             INNER JOIN rto_work_data ON rto_work_data.workId = work_list.workId
@@ -235,7 +245,7 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                     }else if(req.query.searchOption === 'lastUpdated' && req.query.dealerId){
 
                         sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber   
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus  
                                             FROM vehicle_registration_details
                                             LEFT JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
@@ -246,7 +256,7 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                     }else if(req.query.dealerId){
 
                         sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber   
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus  
                                             FROM vehicle_registration_details
                                             LEFT JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
@@ -257,7 +267,7 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                     }else if(req.query.workStatus){
 
                         sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber   
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus  
                                             FROM vehicle_registration_details
                                             LEFT JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
@@ -268,7 +278,7 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                     }else if(req.query.searchOption === 'lastUpdated'){
 
                         sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber   
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus  
                                             FROM vehicle_registration_details
                                             LEFT JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
@@ -279,7 +289,7 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                     }else{
 
                         sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
-                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber   
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus  
                                             FROM vehicle_registration_details
                                             LEFT JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
@@ -766,7 +776,7 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
             }if(req.body.AV){
                 row.push("('"+id+"',9)");
             }
-            console.log(row)
+            // console.log(row)
             var string = ''
             row.forEach((data,index) => {
                 if(index == 0)
@@ -874,36 +884,89 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
     }                         
 }
 
-const removeVehicleRegistrationDetails = async(req,res,next)=>{
+const deleteGoogleFileforTTO = asyncHandler(async (fileId) =>{
+    console.log(">>>>>>>>>>::::::::::<<<<<<<<<<<<<",fileId);
+    const auth = authenticateGoogle();
+
+    const driveService = google.drive({ version: "v3", auth });
+    const response = await driveService.files.delete({ 
+        fileId : fileId,
+      });
+      return response
+})
+
+
+const removeVehicleRegistrationDetails = async(req,res)=>{
 
     try{
-        const data = {
-            vehicleRegistrationId : req.query.vehicleRegistrationId
-        }
-
-        req.query.agentEmailId = pool.query(`SELECT vehicleRegistrationId FROM vehicle_registration_details WHERE vehicleRegistrationId= '${data.vehicleRegistrationId}'`, (err, row)=>{
-            if (row && row.length) {
-                sql_queries_removedetails = `DELETE FROM vehicle_registration_details WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}'`;
-                pool.query(sql_queries_removedetails,(err,data)=>{
-            if(data){
-            if(err) return res.send(err);
-            return res.json({status:200, message:"Vehicle Deleted Successfully"});
-            }
-        })   
-          }else {
-                return res.send('Vehicle is Already Deleted');
-          }})
-
+        const vehicleRegistrationId = req.query.vehicleRegistrationId
+        const get_googleDriveId = `SELECT pdfGoogleDriveId as DriveId FROM tto_form_data WHERE vehicleRegistrationId = '${vehicleRegistrationId}';
+                                   SELECT receiptGoogleDriveId as DriveId FROM rto_receipt_data WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
+        pool.query(get_googleDriveId,(err,data) =>{
+        if(err) return res.send(err);
+        const ttoGoogledriveId1 = data[0];
+        const receiptGoogledriveId2 = data[1];
+        const allId = ttoGoogledriveId1.concat(receiptGoogledriveId2);
+        allId.map(a => {
+            if(data && data[0] && data[0].DriveId ? true : false){
+                deleteGoogleFileforTTO(a.DriveId)
+            }}
+            );
+            req.query.agentEmailId = pool.query(`SELECT vehicleRegistrationId FROM vehicle_registration_details WHERE vehicleRegistrationId= '${vehicleRegistrationId}'`, (err, row)=>{
+                if (row && row.length) {
+                    sql_queries_removedetails = `DELETE FROM vehicle_registration_details WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
+                    pool.query(sql_queries_removedetails,(err,data)=>{
+                if(data){
+                if(err) return res.send(err);
+                return res.json({status:200, message:"Vehicle Deleted Successfully"});
+                }
+            })   
+              }else {
+                    return res.send('Vehicle is Already Deleted');
+              }
+            })
+    })
     }catch(error){
         throw new Error(error);
     }                      
+}
+
+const fillUpdateDetailForVehicle = async(req,res)=>{
+    const vehicleRegistrationId = req.query.vehicleRegistrationId;
+    get_editdetails = `SELECT vehicleRegistrationNumber, vehicleChassisNumber,vehicleEngineNumber,vehicleClass,vehicleCategory,vehicleMake,vehicleModel,vehicleRegistrationDate,sellerFirstName,sellerMiddleName,sellerLastName,sellerAddress,buyerFirstName,buyerMiddleName,buyerLastName,buyerAddressLine1,buyerAddressLine2,buyerAddressLine3,buyerState,buyerCity,buyerPincode,clientWhatsAppNumber,serviceAuthority,dealerId,privateCustomerName,insuranceType,insuranceCompanyNameId,policyNumber,insuranceStartDate,insuranceEndDate, comment FROM vehicle_registration_details
+                       WHERE vehicleRegistrationId = '${vehicleRegistrationId}';
+                       SELECT workId FROM work_list WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
+    pool.query(get_editdetails,(err,data)=>{
+        const find = data[1];
+        let result = find.map(a => a.workId);
+        console.log("result",result);
+        const vehicleDetais = data[0][0];
+
+        const work = {
+            "TO"            : result.includes(1),
+            "HPT"           : result.includes(2),
+            "DRC"           : result.includes(3),
+            "addressChange" : result.includes(4),
+            "HPA"           : result.includes(5),
+            "HPC"           : result.includes(6),
+            "RRF"           : result.includes(7),
+            "NOC"           : result.includes(8),
+            "AV"            : result.includes(9)
+        }
+        const allData = {
+            ...vehicleDetais,
+            ...work
+        }
+        if(err) return res.send(err);
+        return res.json(allData);
+    })
 }
 
 const updateVehicleRegistrationDetails = async(req,res) =>{
 
     try{
         const data = {
-                vehicleRegistrationId       :   req.body.vehicleRegistrationId,
+                vehicleRegistrationId       :   req.query.vehicleRegistrationId,
                 vehicleRegistrationNumber   :   req.body.vehicleRegistrationNumber,        
                 vehicleChassisNumber        :   req.body.vehicleChassisNumber,        
                 vehicleEngineNumber         :   req.body.vehicleEngineNumber,         
@@ -911,8 +974,7 @@ const updateVehicleRegistrationDetails = async(req,res) =>{
                 vehicleCategory             :   req.body.vehicleCategory,             
                 vehicleMake                 :   req.body.vehicleMake,                 
                 vehicleModel                :   req.body.vehicleModel,                
-                vehicleRegistrationDate     :   new Date(req.body.vehicleRegistrationDate?req.body.vehicleRegistrationDate:"01/01/2001").toISOString().slice(0, 10), 
-                vehicleWorkType             :   req.body.vehicleWorkType,             
+                vehicleRegistrationDate     :   new Date(req.body.vehicleRegistrationDate?req.body.vehicleRegistrationDate:"01/01/2001").toString().slice(4,15),
                 sellerFirstName             :   req.body.sellerFirstName,             
                 sellerMiddleName            :   req.body.sellerMiddleName,            
                 sellerLastName              :   req.body.sellerLastName,              
@@ -928,24 +990,23 @@ const updateVehicleRegistrationDetails = async(req,res) =>{
                 buyerPincode                :   req.body.buyerPincode,                
                 clientWhatsAppNumber        :   req.body.clientWhatsAppNumber,        
                 serviceAuthority            :   req.body.serviceAuthority,            
-                dealerId                    :   req.body.dealerId,                    
+                dealerId                    :   req.body.dealerId, 
+                privateCustomerName         :   req.body.privateCustomerName,                    
                 insuranceType               :   req.body.insuranceType,               
                 insuranceCompanyNameId      :   req.body.insuranceCompanyNameId,      
                 policyNumber                :   req.body.policyNumber,                
-                insuranceStartDate          :   new Date(req.body.insuranceStartDate?req.body.insuranceStartDate:"01/01/2001").toISOString().slice(0, 10),          
-                insuranceEndDate            :   new Date(req.body.insuranceEndDate?req.body.insuranceEndDate:"01/01/2001").toISOString().slice(0, 10),            
-                vehicleWorkStatus           :   req.body.vehicleWorkStatus,           
+                insuranceStartDate          :   new Date(req.body.insuranceStartDate?req.body.insuranceStartDate:"10/10/1001").toString().slice(4,15),          
+                insuranceEndDate            :   new Date(req.body.insuranceEndDate?req.body.insuranceEndDate:"10/10/1001").toString().slice(4,15),            
                 comment                     :   req.body.comment                  
         }   
         const sql_querry_updatedetails = `UPDATE vehicle_registration_details SET  vehicleRegistrationNumber = '${data.vehicleRegistrationNumber}',
                                                                                    vehicleChassisNumber = '${data.vehicleChassisNumber}',   
                                                                                    vehicleEngineNumber = '${data.vehicleEngineNumber}',      
-                                                                                   vehicleClass = '${data.vehicleClass}',            
-                                                                                   vehicleCategory = '${data.vehicleCategory}',          
+                                                                                   vehicleClass = ${data.vehicleClass},            
+                                                                                   vehicleCategory = ${data.vehicleCategory},          
                                                                                    vehicleMake = '${data.vehicleMake}',              
                                                                                    vehicleModel = '${data.vehicleModel}',             
-                                                                                   vehicleRegistrationDate = '${data.vehicleRegistrationDate}',  
-                                                                                   vehicleWorkType = '${data.vehicleWorkType}',          
+                                                                                   vehicleRegistrationDate = STR_TO_DATE('${data.vehicleRegistrationDate}','%b %d %Y'),         
                                                                                    sellerFirstName = '${data.sellerFirstName}',          
                                                                                    sellerMiddleName = '${data.sellerMiddleName}',         
                                                                                    sellerLastName = '${data.sellerLastName}',           
@@ -956,18 +1017,18 @@ const updateVehicleRegistrationDetails = async(req,res) =>{
                                                                                    buyerAddressLine1 = '${data.buyerAddressLine1}',        
                                                                                    buyerAddressLine2 = '${data.buyerAddressLine2}',        
                                                                                    buyerAddressLine3 = '${data.buyerAddressLine3}',        
-                                                                                   buyerState = '${data.buyerState}',               
-                                                                                   buyerCity = '${data.buyerCity}',                
-                                                                                   buyerPincode = '${data.buyerPincode}',             
+                                                                                   buyerState = ${data.buyerState},               
+                                                                                   buyerCity = ${data.buyerCity},                
+                                                                                   buyerPincode = ${data.buyerPincode},             
                                                                                    clientWhatsAppNumber = '${data.clientWhatsAppNumber}',     
-                                                                                   serviceAuthority = '${data.serviceAuthority}',         
-                                                                                   dealerId = '${data.dealerId}',                 
+                                                                                   serviceAuthority = ${data.serviceAuthority},         
+                                                                                   dealerId = '${data.dealerId}',
+                                                                                   privateCustomerName = '${data.privateCustomerName}',                 
                                                                                    insuranceType = '${data.insuranceType}',            
-                                                                                   insuranceCompanyNameId = '${data.insuranceCompanyNameId}',   
+                                                                                   insuranceCompanyNameId = ${data.insuranceCompanyNameId},   
                                                                                    policyNumber = '${data.policyNumber}',             
-                                                                                   insuranceStartDate = '${data.insuranceStartDate}',       
-                                                                                   insuranceEndDate = '${data.insuranceEndDate}',         
-                                                                                   vehicleWorkStatus = '${data.vehicleWorkStatus}',        
+                                                                                   insuranceStartDate = STR_TO_DATE(NULLIF('${data.insuranceStartDate}','Oct 10 1001'),'%b %d %Y'),       
+                                                                                   insuranceEndDate = STR_TO_DATE(NULLIF('${data.insuranceEndDate}','Oct 10 1001'),'%b %d %Y'),
                                                                                    comment = '${data.comment}'
                                                                                    WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}'`;
         pool.query(sql_querry_updatedetails,(err,data) =>{ 
@@ -981,7 +1042,7 @@ const updateVehicleRegistrationDetails = async(req,res) =>{
 
 const moveToComplete = (req,res) =>{
 
-     const vehicleRegistrationId = req.query.vehicleRegistrationId;
+    const vehicleRegistrationId = req.query.vehicleRegistrationId;
 
     sql_state_update = `UPDATE vehicle_registration_details SET nextState = 4, vehicleWorkStatus = 'COMPLETE' WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
     pool.query(sql_state_update,(err,data)=>{
@@ -992,7 +1053,7 @@ const moveToComplete = (req,res) =>{
 } 
 
 const WhatsAppHyy = (req,res)=>{
-    res.send("Hyyy");
+    res.send("hyyyy");
 }
 
 module.exports = { 
@@ -1001,8 +1062,10 @@ module.exports = {
                     getVehicleRegistrationDetailsBydealerId,
                     addVehicleRegistrationDetails,
                     removeVehicleRegistrationDetails,
+                    fillUpdateDetailForVehicle,
                     updateVehicleRegistrationDetails,
                     exportExcelSheetForVehicleDetails,
                     moveToComplete,
-                    WhatsAppHyy
+                    WhatsAppHyy,
+                    deleteGoogleFileforTTO
                  };

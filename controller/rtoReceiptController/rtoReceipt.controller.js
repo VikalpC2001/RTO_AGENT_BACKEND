@@ -3,6 +3,7 @@ const multer = require("multer");
 const { google } = require("googleapis");
 const pool = require("../../database");
 const { json } = require("body-parser");
+const { sql } = require("googleapis/build/src/apis/sql");
 const upload = multer({limits: {fileSize : 5 * 1024 * 1024}}).any();
 
 const KEYFILEPATH = process.env.GOOGLE_SERVICE;
@@ -13,58 +14,71 @@ const auth = new google.auth.GoogleAuth({
   scopes: SCOPES,
 });
 
-const uploadReceipt = async(req, res) => {
-
+const uploadReceipt = async(req,res,next) => {
     try {
-        upload(req,res, async()=>{
-            // console.log("/////",req.files);
-            const { files } = req;
-            if(!files[0]){
-                res.status(401);
-                res.send("Please Select File")
-            }else{
-              const temp =  await uploadFile(files[0])
-                // console.log(">>?",temp);
-                // fillPDFdata(data)
-                .then((temp)=>{
-                    const vehicleRegistrationId = req.body.vehicleRegistrationId;
-                    const appointmentDate = new Date(req.body.appointmentDate?req.body.appointmentDate:'10/10/1001').toString().slice(4, 15);
-                    console.log("<><><><>",appointmentDate)
-                    if(vehicleRegistrationId === ''){
-                      res.status(401);
-                      res.send("Please Enter Id")
-                    }else{
-                        const receiptURL = `https://drive.google.com/uc?export=view&id=${temp}`
-                          sql_add_Receipt = `INSERT INTO rto_receipt_data (vehicleRegistrationId, receiptURL, receiptGoogleDriveId, appointmentDate) VALUES ('${vehicleRegistrationId}','${receiptURL}','${temp}',STR_TO_DATE(NULLIF('${appointmentDate}','Oct 10 1001'),'%b %d %Y'));
-                                             SELECT nextState FROM vehicle_registration_details WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
-                        pool.query(sql_add_Receipt,(err,data)=>{
-                        if(err) return res.json(err);
-                        var gandhi = data[1][0]['nextState'];
-                        console.log(">>>gand",gandhi);
-                        var newVariable = [];
-                        let result = Object.values(JSON.parse(JSON.stringify(data[1][0])));
-                        result.forEach((v) => newVariable.push(v));
-                        console.log(">>>>>?????",newVariable[0])
-                          if(newVariable[0] === 2){
-                            sql_state_update = `UPDATE vehicle_registration_details SET currentState = 2, nextState = 4, vehicleWorkStatus = 'PENDING' WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`
+            console.log("dfsakjnfahfjksan",req.vehicleRegistrationId);
+            upload(req,res, async()=>{
+              const vehicleRegistrationId = req.body.vehicleRegistrationId ? req.body.vehicleRegistrationId : req.body.files;
+                  console.log("iddddddddddddd",req.body);
+                  console.log("dfsakjnfahfjksan",req.body.vehicleRegistrationId ? req.body.vehicleRegistrationId : req.body.files);
+                  sql_get_Status = `SELECT vehicleWorkStatus FROM vehicle_registration_details WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
+                  console.log("fdas",sql_get_Status);
+                  pool.query(sql_get_Status,async(err,row)=>{
+                    if(err) return res.json(err);
+                      var status = row[0]['vehicleWorkStatus']
+                      console.log("statuuuuuus",status);
+                      if(status === 'PENDING'){
+                          console.log(req.body);
+                          // console.log("/////",req.files);
+                          const { files } = req;
+                          if(!files[0]){
+                              res.status(401);
+                              res.send("Please Select File")
                           }else{
-                            sql_state_update = `UPDATE vehicle_registration_details SET vehicleWorkStatus = 'APPOINTMENT' WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`
+                            const temp =  await uploadFile(files[0])
+                              // console.log(">>?",temp);
+                              // fillPDFdata(data)
+                              .then((temp)=>{
+                                  const uid1 = new Date();
+                                  const uid2 = (new Date().getTime()).toString(36);
+                                  const id = String("Receipt_" + uid1.getTime() + "_" + uid2);
+                                  const appointmentDate = new Date(req.body.appointmentDate?req.body.appointmentDate:'10/10/1001').toString().slice(4, 15);
+                                  if(vehicleRegistrationId === ''){
+                                    res.status(401);
+                                    res.send("Please Enter Id")
+                                  }else{
+                                      const receiptURL = `https://drive.google.com/uc?export=view&id=${temp}`
+                                        sql_add_Receipt = `INSERT INTO rto_receipt_data (receiptId, vehicleRegistrationId, receiptURL, receiptGoogleDriveId, appointmentDate) VALUES ('${id}','${vehicleRegistrationId}','${receiptURL}','${temp}',STR_TO_DATE(NULLIF('${appointmentDate}','Oct 10 1001'),'%b %d %Y'));
+                                                           UPDATE vehicle_registration_details set vehicleWorkStatus = 'APPOINTMENT' WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
+                                                           console.log("sqll",sql_add_Receipt);
+                                      pool.query(sql_add_Receipt,(err,data)=>{
+                                      if(err) return res.json(err);
+                                        res.locals.id = id;
+                                         console.log("local1",res.locals.id);
+                                          next();
+                                    })
+                                  }
+                              })
                           }
-                          console.log("query 1",sql_state_update);
+                      }else{
+                        sql_getNextstep = `SELECT nextState FROM vehicle_registration_details WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
+                        pool.query(sql_getNextstep,(err,data)=>{
+                          if(err) return res.json(err);
+                          var state = data[0]['nextState'];
+                          console.log("state",state);
+                            if(state === 2){
+                                sql_state_update = `UPDATE vehicle_registration_details SET currentState = 2, nextState = 4, vehicleWorkStatus = 'PENDING' WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`
+                            }else{
+                                sql_state_update = `UPDATE vehicle_registration_details SET vehicleWorkStatus = 'COMPLETE' WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`
+                            }
                             pool.query(sql_state_update,(err,data)=>{
-                              if(err) return res.status(404).send(err);
-                              return res.status(200),
-                              res.json("State Updated & Receipt Uoloaded Successfully");
+                                if(err) return res.status(404).send(err);
+                                return res.send('State Updated')
                             })
-                          // if(err) return res.status(404).send(err);
-                          // return res.status(200),
-                          //       res.json("Receipt Uoloaded Successfully");
-                      })
-                    }
-                })
-            // return res.status(200).send(`Receipt Uoloaded Successfullys`);
-            }
-        })
+                          })
+                      }
+                  })
+                        })
     } catch (f) {
         return res.send(f.message);
     }

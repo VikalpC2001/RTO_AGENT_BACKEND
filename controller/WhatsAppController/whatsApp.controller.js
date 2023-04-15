@@ -1,8 +1,9 @@
 'use strict';
 const asyncHandler = require('express-async-handler');
 const axios=require("axios");
+const pool = require('../../database');
 require('dotenv').config();
-const token=process.env.Meta_WA_accessToken;
+const token = process.env.Meta_WA_accessToken;
 
 const meta_wa_callbackurl = (req, res) => {
     console.log(">>>")
@@ -35,8 +36,38 @@ const meta_wa_callbackurl = (req, res) => {
     }
 }
 
+const getWhtsappMsgData = async(req,res) =>{
+
+    const receiptId = res.locals.id;
+    console.log("local2",receiptId);
+    const sql_getMsg_data = `SELECT UPPER(vehicle_registration_details.vehicleRegistrationNumber) AS vehicleRegistrationNumber, COALESCE(dealer_details.dealerFirmName,privateCustomerName) AS "Dealer/Customer", dealer_details.dealerWhatsAppNumber, rto_receipt_data.receiptURL, vehicle_registration_details.clientWhatsAppNumber, DATE_FORMAT(appointmentDate, '%d-%M-%Y') AS appointmentDate FROM rto_receipt_data
+                              LEFT JOIN vehicle_registration_details ON vehicle_registration_details.vehicleRegistrationId = rto_receipt_data.vehicleRegistrationId
+                              LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
+                              WHERE rto_receipt_data.receiptId = '${receiptId}'`;
+                              console.log(">>>",sql_getMsg_data);
+    pool.query(sql_getMsg_data,(err,data)=>{
+        if(err) return res.status(404).send(err);
+        return res.status(200),
+               res.json(data);
+    })
+}
+
 const sendReceipte = asyncHandler(async(req, res) => {
     try {
+
+        const receiptId = res.locals.id;
+        console.log("local2",receiptId);
+        const sql_getMsg_data = `SELECT UPPER(vehicle_registration_details.vehicleRegistrationNumber) AS vehicleRegistrationNumber, COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer", rto_receipt_data.receiptURL, rto_receipt_data.appointmentDate FROM rto_receipt_data
+                                 LEFT JOIN vehicle_registration_details ON vehicle_registration_details.vehicleRegistrationId = rto_receipt_data.vehicleRegistrationId
+                                 LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
+                                 WHERE rto_receipt_data.receiptId = '${receiptId}'`;
+        pool.query(sql_getMsg_data,async(err,data) => {
+            if(err) return res.status(404).send(err);
+            // return res.status(200),
+            //        res.json(data);
+            const vehicleNumber = data[0].vehicleRegistrationNumber;
+            
+    // })
         await axios({
             method:"POST",
             url:"https://graph.facebook.com/v15.0/"+"110836215242868"+"/messages/",
@@ -49,7 +80,7 @@ const sendReceipte = asyncHandler(async(req, res) => {
              //    },
                 document: {
                  link: "https://drive.google.com/uc?export=view&id=1j0SwOtanRKIBmcaJYq3n59Pc1KpYyyUt",
-                 caption: "🖕🖕🖕🖕🖕🖕🖕🖕🖕"
+                 caption: "Vehicle Number = "+vehicleNumber+"dealerName"
                }
                
             },
@@ -57,13 +88,34 @@ const sendReceipte = asyncHandler(async(req, res) => {
                  'Authorization': 'Bearer '+token,
                 'Content-Type':"application/json"
             }
-
+        })
+        await axios({
+            method:"POST",
+            url:"https://graph.facebook.com/v15.0/"+"110836215242868"+"/messages/",
+            data:{
+                messaging_product:"whatsapp",
+                to:"919825312229",
+                type:"document",
+             //    text:{
+             //        body:"Hi.. I'm jay, your message is "+msg_body
+             //    },
+                document: {
+                 link: "https://drive.google.com/uc?export=view&id=1j0SwOtanRKIBmcaJYq3n59Pc1KpYyyUt",
+                 caption: "Vehicle Number = "+vehicleNumber+"dealerName"
+               }
+               
+            },
+            headers:{
+                 'Authorization': 'Bearer '+token,
+                'Content-Type':"application/json"
+            }
         })
         res.sendStatus(200)
+    })
     } catch (error) {
                 console.error({error})
         return res.sendStatus(500);
     }
 })
 
-module.exports = { sendReceipte , meta_wa_callbackurl };
+module.exports = { sendReceipte , meta_wa_callbackurl , getWhtsappMsgData };
