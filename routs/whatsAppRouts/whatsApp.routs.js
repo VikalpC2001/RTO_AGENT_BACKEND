@@ -24,6 +24,7 @@ require('dotenv').config();
 // import t from '../document_recipt/'
 
 const token=process.env.Meta_WA_accessToken;
+console.log(token)
 // const WhatsappCloudAPI = require('../whatsappcloudapi_wrapper');
 // const Whatsapp = new WhatsappCloudAPI({
 //     accessToken: process.env.Meta_WA_accessToken,
