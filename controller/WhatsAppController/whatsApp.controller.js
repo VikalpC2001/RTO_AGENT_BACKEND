@@ -88,19 +88,21 @@ const sendReceipte = asyncHandler(async(req, res) => {
         //         'Content-Type':"application/json"
         //     }
         // })
+
+
         await axios({
             method:"POST",
-            url:"https://graph.facebook.com/v15.0/"+"110836215242868"+"/messages/",
+            url:"https://graph.facebook.com/v15.0/110836215242868/messages/",
             data:{
                 messaging_product:"whatsapp",
-                to:"919825312229",
+                to:from,
                 type:"document",
              //    text:{
              //        body:"Hi.. I'm jay, your message is "+msg_body
              //    },
                 document: {
-                 link: pdfURL,
-                 caption: "Vehicle Number = "+vehicleNumber+"dealerName"
+                 link: "https://drive.google.com/uc?export=view&id=1WUWMRx2g0JIfRNZjJWU1Bui7iuBph6XM",
+                 caption: "Chodina Error solw kar je tu msg avi gyo"
                }
                
             },
@@ -108,15 +110,46 @@ const sendReceipte = asyncHandler(async(req, res) => {
                  'Authorization': 'Bearer '+token,
                 'Content-Type':"application/json"
             }
-        // })
-    }).then((resp)=>{
-                            console.log(resp);
-                            res.sendStatus(200)
-                       })
-                       .catch((error)=>{
-                        console.log(error)
-                        res.send(error)
-                       })
+
+        })
+        .then((resp)=>{
+             console.log(resp);
+             res.sendStatus(200)
+        })
+        .catch((error)=>{
+         console.log(error)
+         res.send(error)
+        })
+
+    //     await axios({
+    //         method:"POST",
+    //         url:"https://graph.facebook.com/v15.0/"+"110836215242868"+"/messages/",
+    //         data:{
+    //             messaging_product:"whatsapp",
+    //             to:"919825312229",
+    //             type:"document",
+    //          //    text:{
+    //          //        body:"Hi.. I'm jay, your message is "+msg_body
+    //          //    },
+    //             document: {
+    //              link: pdfURL,
+    //              caption: "Vehicle Number = "+vehicleNumber+"dealerName"
+    //            }
+               
+    //         },
+    //         headers:{
+    //              'Authorization': 'Bearer '+token,
+    //             'Content-Type':"application/json"
+    //         }
+    //     // })
+    // }).then((resp)=>{
+    //                         console.log(resp);
+    //                         res.sendStatus(200)
+    //                    })
+    //                    .catch((error)=>{
+    //                     console.log(error)
+    //                     res.send(error)
+    //                    })
         // res.sendStatus(200)
     })
     } catch(error) {
