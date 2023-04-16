@@ -150,7 +150,15 @@ router.post('/meta_wa_callbackurl', asyncHandler(async(req, res) => {
                    }
 
                })
-               res.sendStatus(200)
+               .then((resp)=>{
+                    console.log(resp);
+                    res.sendStatus(200)
+               })
+               .catch((error)=>{
+                console.log(error)
+                res.send(error)
+               })
+               
             }else{
                 res.sendStatus(404);
             }
