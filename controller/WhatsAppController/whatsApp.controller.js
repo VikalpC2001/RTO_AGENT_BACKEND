@@ -103,6 +103,7 @@ const sendReceipte = asyncHandler(async(req, res) => {
              //    },
                 document: {
                  link: pdfURL,
+                 filename:vehicleNumber,
                  caption: "vehicel Number ="+vehicleNumber+"hyy"
                }
                
@@ -127,6 +128,7 @@ const sendReceipte = asyncHandler(async(req, res) => {
                  //    },
                     document: {
                      link: pdfURL,
+                     filename:vehicleNumber,
                      caption: "vehicel Number = "+vehicleNumber
                    }
                    
