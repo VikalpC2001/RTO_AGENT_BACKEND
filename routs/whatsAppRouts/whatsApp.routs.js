@@ -24,7 +24,7 @@ require('dotenv').config();
 // import t from '../document_recipt/'
 
 const token=process.env.Meta_WA_accessToken;
-console.log(token)
+
 // const WhatsappCloudAPI = require('../whatsappcloudapi_wrapper');
 // const Whatsapp = new WhatsappCloudAPI({
 //     accessToken: process.env.Meta_WA_accessToken,
@@ -127,7 +127,7 @@ router.post('/meta_wa_callbackurl', asyncHandler(async(req, res) => {
                console.log("phone number "+phon_no_id);
                console.log("from "+from);
                console.log("boady param "+msg_body);
-                
+               console.log('VVVVVVV',token)
               await axios({
                    method:"POST",
                    url:"https://graph.facebook.com/v15.0/"+phon_no_id+"/messages/",
