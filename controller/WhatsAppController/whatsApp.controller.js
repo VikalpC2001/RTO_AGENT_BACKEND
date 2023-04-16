@@ -95,7 +95,7 @@ const sendReceipte = asyncHandler(async(req, res) => {
             url:"https://graph.facebook.com/v15.0/110836215242868/messages/",
             data:{
                 messaging_product:"whatsapp",
-                to:from,
+                to:"9898266144",
                 type:"document",
              //    text:{
              //        body:"Hi.. I'm jay, your message is "+msg_body
