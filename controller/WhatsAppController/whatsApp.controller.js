@@ -66,7 +66,7 @@ const sendReceipte = asyncHandler(async(req, res) => {
             //        res.json(data);
             const vehicleNumber = data[0].vehicleRegistrationNumber;
             const pdfURL = data[0].URL;
-            console.log("pdfffffff",)
+            console.log("pdfffffff",data[0].URL)
             
         // await axios({
         //     method:"POST",
@@ -113,9 +113,38 @@ const sendReceipte = asyncHandler(async(req, res) => {
             }
 
         })
-        .then((resp)=>{
+        .then(async(resp)=>{
              console.log(resp);
-             res.sendStatus(200)
+             await axios({
+                method:"POST",
+                url:"https://graph.facebook.com/v15.0/110836215242868/messages/",
+                data:{
+                    messaging_product:"whatsapp",
+                    to:"91982531229",
+                    type:"document",
+                 //    text:{
+                 //        body:"Hi.. I'm jay, your message is "+msg_body
+                 //    },
+                    document: {
+                     link: pdfURL,
+                     caption: "vehicel Number = "+vehicleNumber
+                   }
+                   
+                },
+                headers:{
+                     'Authorization': 'Bearer '+token,
+                    'Content-Type':"application/json"
+                }
+    
+            })
+            .then((resp)=>{
+                 console.log(resp);
+                 res.sendStatus(200)
+            })
+            .catch((error)=>{
+             console.log(error)
+             res.send(error)
+            })
         })
         .catch((error)=>{
          console.log(error)
