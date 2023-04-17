@@ -922,11 +922,14 @@ const removeVehicleRegistrationDetails = async(req,res)=>{
         const ttoGoogledriveId1 = data[0];
         const receiptGoogledriveId2 = data[1];
         const allId = ttoGoogledriveId1.concat(receiptGoogledriveId2);
-        allId.map(a => {
-            if(data && data[0] && data[0].DriveId ? true : false){
-                deleteGoogleFileforTTO(a.DriveId)
-            }}
-            );
+        if(allId){
+            allId.map(a => {
+                if(a ? true : false){
+                    deleteGoogleFileforTTO(a.DriveId)
+                }}
+                );
+        }
+       
             req.query.agentEmailId = pool.query(`SELECT vehicleRegistrationId FROM vehicle_registration_details WHERE vehicleRegistrationId= '${vehicleRegistrationId}'`, (err, row)=>{
                 if (row && row.length) {
                     sql_queries_removedetails = `DELETE FROM vehicle_registration_details WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
