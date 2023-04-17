@@ -166,9 +166,13 @@ const removeDealerDetails = async(req,res)=>{
         const ttoGoogledriveId1 = data[0];
         const receiptGoogledriveId2 = data[1];
         const allId = ttoGoogledriveId1.concat(receiptGoogledriveId2);
-        var GoogleDId = allId.filter(e => {
-            return e.DriveId !== null;
-          });
+        var GoogleDId = [];
+        if(allId){
+            GoogleDId = allId.filter(e => {
+                return e.DriveId !== null;
+              });
+        }
+
           console.log("goglDiiiiiiiiiiiid",GoogleDId);
           if(GoogleDId){
             GoogleDId.map(a => {GoogleDelete.deleteGoogleFileforTTO(a.DriveId)});
