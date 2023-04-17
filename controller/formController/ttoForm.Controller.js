@@ -239,7 +239,7 @@ const genrateTTOform = async(req,res) => {
                                                UPPER(CONCAT(buyerFirstName," ",buyerMiddleName," ",buyerLastName)) AS buyerName,
                                                UPPER(CONCAT(buyerAddressLine1,", ",buyerAddressLine2,", ",buyerAddressLine3)) AS buyerAddress,
                                                CONCAT(state_data.stateName,", ",city_data.cityName,"- ",buyerPincode) AS buyerStateCityPincode,
-                                               (rto_city_data.cityRTOName) AS serviceAuthority, (insurance_data.insuranceCompanyName) AS insuranceCompanyName, policyNumber, 
+                                               UPPER(rto_city_data.cityRTOName) AS serviceAuthority, (insurance_data.insuranceCompanyName) AS insuranceCompanyName, policyNumber, 
                                                DATE_FORMAT(insuranceStartDate, '%d-%m-%Y') AS insuranceStartDate, DATE_FORMAT(insuranceEndDate, '%d-%m-%Y') AS insuranceEndDate
                                                FROM vehicle_registration_details
                                                INNER JOIN state_data ON state_data.stateId = vehicle_registration_details.buyerState
