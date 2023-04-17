@@ -5,7 +5,7 @@ const { Readable } =  require('stream');
 const pool = require("../../database");
 
 const fillPDFdata = async(data)=>{
-console.log(">>>>>",data[0].vehicleRegistrationNumber);
+console.log(">>>>>",data[0].buyerStateCityPincode);
   const details = {
     vehicleRegistrationNumber    : data[0].vehicleRegistrationNumber ? data[0].vehicleRegistrationNumber : '',
     vehicleMake                  : data[0].vehicleMake               ? data[0].vehicleMake               : '',
