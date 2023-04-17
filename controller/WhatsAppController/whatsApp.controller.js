@@ -134,7 +134,7 @@ const sendReceipte = asyncHandler(async(req, res) => {
                    
                 },
                 headers:{
-                     'Authorization': 'Bearer '+token,
+                    'Authorization': 'Bearer '+token,
                     'Content-Type':"application/json"
                 }
     

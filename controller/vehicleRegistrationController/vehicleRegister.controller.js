@@ -8,7 +8,7 @@ const asyncHandler = require('express-async-handler');
 const authenticateGoogle = () => {
     const auth = new google.auth.GoogleAuth({
     //   keyFile: process.env.GOOGLE_SERVICE,
-      keyFile: `/Users/vikalp/Desktop/RTO_AGENT_BACKEND/service-account.json`,
+      keyFile: process.env.GOOGLE_SERVICE,
       scopes: "https://www.googleapis.com/auth/drive",
     });
     return auth;
