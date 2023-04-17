@@ -238,14 +238,13 @@ const genrateTTOform = async(req,res) => {
                                                UPPER(CONCAT(sellerFirstName," ",sellerMiddleName," ",sellerLastName)) AS sellerName, sellerAddress,
                                                UPPER(CONCAT(buyerFirstName," ",buyerMiddleName," ",buyerLastName)) AS buyerName,
                                                UPPER(CONCAT(buyerAddressLine1,", ",buyerAddressLine2,", ",buyerAddressLine3)) AS buyerAddress,
-                                               CONCAT(state_data.stateName,", ",city_data.cityName," - ",buyerPincode) AS buyerStateCityPincode,
+                                               CONCAT(state_data.stateName,", ",city_data.cityName,"- ",buyerPincode) AS buyerStateCityPincode,
                                                (rto_city_data.cityRTOName) AS serviceAuthority, (insurance_data.insuranceCompanyName) AS insuranceCompanyName, policyNumber, 
                                                DATE_FORMAT(insuranceStartDate, '%d-%m-%Y') AS insuranceStartDate, DATE_FORMAT(insuranceEndDate, '%d-%m-%Y') AS insuranceEndDate
                                                FROM vehicle_registration_details
-                                               LEFT JOIN state_data ON state_data.stateId = vehicle_registration_details.buyerState
-                                               LEFT JOIN city_data 
-                                               ON city_data.cityId = vehicle_registration_details.buyerCity = vehicle_registration_details.serviceAuthority
-                                               LEFT JOIN rto_city_data ON rto_city_data.RTOcityId = vehicle_registration_details.serviceAuthority
+                                               INNER JOIN state_data ON state_data.stateId = vehicle_registration_details.buyerState
+                                               INNER JOIN city_data ON city_data.cityId = vehicle_registration_details.buyerCity
+                                               INNER JOIN rto_city_data ON rto_city_data.RTOcityId = vehicle_registration_details.serviceAuthority
                                                LEFT JOIN insurance_data ON insurance_data.insuranceId = vehicle_registration_details.insuranceCompanyNameId
                                                WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
             pool.query(sql_querry_getdetailsById,(err,data)=>{
