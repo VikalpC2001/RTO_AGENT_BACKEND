@@ -142,6 +142,11 @@ const updateAgentDetails = async(req,res) =>{
 }
 
 const authUser = async(req,res) =>{
+    // res.setHeader("Access-Control-Allow-Origin", "*");
+    // res.header(
+    //   "Access-Control-Allow-Headers",
+    //   "Origin, X-Requested-With, Content-Type, Accept"
+    // );
     const user = {
         agentEmailId        : req.body.agentEmailId,
         agentPassword       : req.body.agentPassword

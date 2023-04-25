@@ -14,6 +14,38 @@ const authenticateGoogle = () => {
     return auth;
   };
 
+  const dashBoardCountNumber = async(req,res) =>{
+    try{
+        let token;
+        token = req.headers.authorization.split(" ")[1];
+        if(token){
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const agentId = decoded.id.id;
+            sql_queries_getdetailsByid = `SELECT COUNT(*) AS TotalBooksOfAgent FROM vehicle_registration_details WHERE agentId = '${agentId}';
+                                          SELECT COUNT(*) AS PendingBooksOfAgent FROM vehicle_registration_details WHERE agentId = '${agentId}' AND vehicleWorkStatus = "PENDING";
+                                          SELECT COUNT(*) AS AppointmentBooksOfAgent FROM vehicle_registration_details WHERE agentId = '${agentId}' AND vehicleWorkStatus = "APPOINTMENT";
+                                          SELECT COUNT(*) AS CompleteBooksOfAgent FROM vehicle_registration_details WHERE agentId = '${agentId}' AND vehicleWorkStatus = "COMPLETE";                                   `;
+
+            pool.query(sql_queries_getdetailsByid,(err,data)=>{
+            if(err) return res.send(err);
+            const Number = {
+                'ALL Book'             : data[0][0]['TotalBooksOfAgent'],
+                'ALL Pending Book'     : data[1][0]['PendingBooksOfAgent'],
+                'ALL Appointment Book' : data[2][0]['AppointmentBooksOfAgent'],
+                'ALL Complete Book'    : data[3][0]['CompleteBooksOfAgent']
+            }
+            return res.json(Number);
+            })       
+        }
+        else{
+            res.status(401);
+            res.send("Please Login Firest.....!");
+        }
+    }catch(error){
+        throw new Error(error);
+    }   
+}
+
 const getListOfVehicleRegistrationDetails = async(req,res)=>{
     try{
         const page = req.query.page;
@@ -346,8 +378,8 @@ const getVehicleRegistrationDetailsById = async(req,res) =>{
         sql_queries_getdetailsByid = `SELECT UPPER(vehicleRegistrationNumber) AS "Regsitration Number", vehicleChassisNumber AS "Chassis Number", vehicleEngineNumber AS "Engine Number", (vehicle_class_data.vehicleClassName) AS "Vehicle Class",
                                              (vehicle_category_data.vehicleCategoryName) AS "Vehicle Category", UPPER(vehicleMake) AS " Vehicle Make", UPPER(vehicleModel) AS "Vehicle Model", DATE_FORMAT(vehicleRegistrationDate, '%d-%M-%Y') AS "Vehicle Registration Date", (rto_city_data.cityRTOName) AS "Serviceing Authority"
                                              FROM vehicle_registration_details
-                                             INNER JOIN vehicle_category_data ON vehicle_category_data.vehicleCategoryId = vehicle_registration_details.vehicleCategory
-                                             INNER JOIN vehicle_class_data ON vehicle_class_data.vehicleClassId = vehicle_registration_details.vehicleClass
+                                             LEFT JOIN vehicle_category_data ON vehicle_category_data.vehicleCategoryId = vehicle_registration_details.vehicleCategory
+                                             LEFT JOIN vehicle_class_data ON vehicle_class_data.vehicleClassId = vehicle_registration_details.vehicleClass
                                              INNER JOIN rto_city_data ON rto_city_data.RTOcityId = vehicle_registration_details.serviceAuthority
                                              WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}';
                                       SELECT CONCAT(sellerFirstName," ",sellerMiddleName," ",sellerLastName) AS "Owner Name", sellerAddress AS "Address"
@@ -361,7 +393,7 @@ const getVehicleRegistrationDetailsById = async(req,res) =>{
                                              WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}';
                                       SELECT insuranceType AS "Insurance Type", (insurance_data.insuranceCompanyName) AS "Insurance Company", policyNumber AS "Policy Number", DATE_FORMAT(insuranceStartDate, '%d-%M-%Y') AS "Insurance from", DATE_FORMAT(insuranceEndDate, '%d-%M-%Y') AS "Insurance upto"
                                              FROM vehicle_registration_details
-                                             INNER JOIN insurance_data ON insurance_data.insuranceId = vehicle_registration_details.insuranceCompanyNameId
+                                             LEFT JOIN insurance_data ON insurance_data.insuranceId = vehicle_registration_details.insuranceCompanyNameId
                                              WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}';
                                       SELECT vehicleWorkStatus AS "Status", comment AS "Comment", DATE_FORMAT(vehicleRegistrationCreationDate, '%d %M %Y') AS "Rrgistration Date"
                                              FROM vehicle_registration_details
@@ -1230,4 +1262,5 @@ module.exports = {
                     moveToComplete,
                     WhatsAppHyy,
                     deleteGoogleFileforTTO,
+                    dashBoardCountNumber
                  };

@@ -22,6 +22,12 @@ const fillUpdateDetailForDealer = async(req,res) =>{
 
 const getDealerDetailsById = async(req,res) =>{
     try{
+        var date = new Date(), y = date.getFullYear(), m = (date.getMonth()-1);
+        var firstDay = new Date(y, m, 1).toString().slice(4,15);
+        var lastDay = new Date(y, m + 1, 0).toString().slice(4,15);
+
+        console.log("1111>>>>",firstDay);
+        console.log("1111>>>>",lastDay);
         const data = {
             dealerId : req.query.dealerId
         }
@@ -32,7 +38,13 @@ const getDealerDetailsById = async(req,res) =>{
                                                       FROM dealer_details 
                                                       INNER JOIN state_data ON dealer_details.dealerFirmState = state_data.stateId
                                                       INNER JOIN city_data ON dealer_details.dealerFirmCity = city_data.cityId
-                                                      WHERE dealerId = '${data.dealerId}'`;
+                                                      WHERE dealerId = '${data.dealerId}';
+                                      SELECT COUNT(*) AS TotalBooksOfDealer FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}';
+                                      SELECT COUNT(*) AS PendingBooksOfDealer FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}' AND vehicleWorkStatus = "PENDING";
+                                      SELECT COUNT(*) AS AppointmentBooksOfDealer FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}' AND vehicleWorkStatus = "APPOINTMENT";
+                                      SELECT COUNT(*) AS CompleteBooksOfDealer FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}' AND vehicleWorkStatus = "COMPLETE";
+                                      SELECT COUNT(*) AS LastMonthBooksOfDealer FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}' AND vehicleRegistrationCreationDate BETWEEN STR_TO_DATE('${firstDay}','%b %d %Y') AND STR_TO_DATE('${lastDay}','%b %d %Y');                                    
+                                      SELECT COUNT(*) AS LastUpdatedBooksOfDealer FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}' AND vehicleRegistrationCreationDate = (SELECT MAX(vehicleRegistrationCreationDate) FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}');`;
 
         pool.query(sql_queries_getdetailsByid,(err,data)=>{
             if(err) return res.send(err);

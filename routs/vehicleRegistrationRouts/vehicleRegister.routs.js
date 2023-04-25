@@ -16,7 +16,8 @@ router.post('/updateVehicleRegistrationDetails',protect,vehicleRegistrationContr
 router.get('/fillUpdateDetailForVehicle',protect,vehicleRegistrationController.fillUpdateDetailForVehicle);
 router.post('/uploadReceipt',protect,rtoReceipt.uploadReceipt,whatsappController.sendReceipte);
 router.get('/exportExcelSheetForVehicleDetails',protect,vehicleRegistrationController.exportExcelSheetForVehicleDetails);
-router.get('/moveToComplete',vehicleRegistrationController.moveToComplete);
+router.get('/moveToComplete',protect,vehicleRegistrationController.moveToComplete);
 router.get('/WhatsAppHyy',vehicleRegistrationController.WhatsAppHyy);
+router.get('/dashBoardCountNumber',protect,vehicleRegistrationController.dashBoardCountNumber);
 
 module.exports = router;

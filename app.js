@@ -31,14 +31,16 @@ const cred = {
 const httpsServer = https. createServer (cred, app)
     httpsServer. listen (8443)
 
-app.use(cors({
-    credentials: true, origin: [
-      "http://localhost:3000",
-      "http://localhost:5000"
-    ],
-    exposedHeaders: ["set-cookie"],
-  }));
+app.use(cors());
 
+  app.use((req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept"
+    );
+    next();
+  });
 app.use(bodyparser.urlencoded({extended: false}))
 app.use(bodyparser.json())
 
@@ -54,5 +56,6 @@ app.use('/whatsApprouter',whatsApprouter);
 
 app.use(notFound);
 app.use(erroHandler); 
+
 //Listen or Enviroment port or 5000
 app.listen(port ,() => console.log(`Connecion suceesfull ${port}`)) 
