@@ -17,10 +17,10 @@ const app = express()
 const port = process.env.PORT
 
 const key = fs.readFileSync('./private.key');
-const cert = fs.readFileSync('./13.53.171.161_cert.crt');
+const cert = fs.readFileSync('./103.177.194.54.chained+root.crt');
 
-// app.get('/.well-known/pki-validation/3B1826F0A0EA5F045A05513B1E3F35CD.txt',(req,res)=>{
-//   res.sendFile('/home/ec2-user/RTO_AGENT_BACKEND/3B1826F0A0EA5F045A05513B1E3F35CD.txt')
+// app.get('/.well-known/pki-validation/24B5BA6E0DD80C41F108F7E409271914.txt',(req,res)=>{
+//   res.sendFile('/Users/vikalp/Desktop/RTO_AGENT_BACKEND/24B5BA6E0DD80C41F108F7E409271914.txt')
 // })
 
 const cred = {
@@ -29,7 +29,6 @@ const cred = {
 }
 
 const httpsServer = https. createServer (cred, app)
-    httpsServer. listen (8443)
 
 app.use(cors());
 
@@ -58,4 +57,5 @@ app.use(notFound);
 app.use(erroHandler); 
 
 //Listen or Enviroment port or 5000
+httpsServer. listen (8443)
 app.listen(port ,() => console.log(`Connecion suceesfull ${port}`)) 

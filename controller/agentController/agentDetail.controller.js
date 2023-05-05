@@ -12,16 +12,14 @@ const getAgentDetails = async(req,res) => {
     const sql_querry_getdetails = `SELECT count(*) as numRows FROM agent_details`;
     pool.query(sql_querry_getdetails,(err, rows, fields)=>{
         if(err) {
-            console.log("error: ", err);
-            result(err, null);
+            return res.status(404).send(err);
         }else{
             const numRows = rows[0].numRows;
             const numPages = Math.ceil(numRows / numPerPage);
             pool.query(`SELECT @a:=@a+1 AS serial_number, agentId, CONCAT(agentFirstName," ",agentLastName) AS agentName, agentEmailId, agentMobileNumber 
                                FROM (SELECT @a:= 0) AS a,agent_details LIMIT ` + limit,(err, rows, fields) =>{
                 if(err) {
-                    console.log("error: ", err);
-                    res.send(err, null);
+                    return res.status(404).send(err);
                 }else{
                     console.log(rows);
                     console.log(numRows);
@@ -81,7 +79,7 @@ const addAgentDetails = async(req,res) => {
                                                 '${data.agentPincode}','${data.agentMobileNumber}','${data.agentEmailId}',
                                                 '${data.agentPassword}','${data.isAdminrights}')`;
                 pool.query(sql_querry_adddetails,(err,data)=>{
-                if(err) return res.json(err)
+                if(err) return res.status(404).send(err);
                 return res.status(200),
                 res.json("User Added Successfully");
                 })
@@ -96,7 +94,7 @@ const removeAgentDetails = async(req,res) =>{
     }
     const sql_querry_removedetails = `DELETE FROM agent_details WHERE agentId = '${data.agentId}'`;
     pool.query(sql_querry_removedetails,(err,data)=>{
-        if(err) return res.json(err)
+        if(err) return res.status(404).send(err);
         return res.json(data)
     })
 }
@@ -136,8 +134,8 @@ const updateAgentDetails = async(req,res) =>{
                                                                isAdminrights = '${data.isAdminrights}'
                                                                WHERE agentId = '${data.agentId}'`;
     pool.query(sql_querry_updatedetails,(err,data) =>{
-        if(err) return res.json(err)
-        return res.json(data)
+        if(err) return res.status(404).send(err);
+        return res.json(data);
     })
 }
 
@@ -154,7 +152,7 @@ const authUser = async(req,res) =>{
     console.log(">>>",user);
     const sql_querry_authuser = `SELECT * FROM agent_details WHERE agentEmailId = '${user.agentEmailId}'`;
     pool.query(sql_querry_authuser,(err,data) =>{
-        if(err) return res.send(err);
+        if(err) return res.status(404).send(err);
         // console.log("<<<",data[0].agentPassword === user.agentPassword,data,user.agentPassword)
         if(data[0] && data[0].agentPassword == user.agentPassword){
             res.json({

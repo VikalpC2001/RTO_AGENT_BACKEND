@@ -16,7 +16,6 @@ const auth = new google.auth.GoogleAuth({
 
 const uploadReceipt = async(req,res,next) => {
     try {
-            console.log("dfsakjnfahfjksan",req.vehicleRegistrationId);
             upload(req,res, async()=>{
               const vehicleRegistrationId = req.body.vehicleRegistrationId ? req.body.vehicleRegistrationId : req.body.files;
                   console.log("iddddddddddddd",req.body);
@@ -43,7 +42,9 @@ const uploadReceipt = async(req,res,next) => {
                                   const uid2 = (new Date().getTime()).toString(36);
                                   const id = String("Receipt_" + uid1.getTime() + "_" + uid2);
                                   const appointmentDate = new Date(req.body.appointmentDate?req.body.appointmentDate:'10/10/1001').toString().slice(4, 15);
-                                  if(vehicleRegistrationId === ''){
+                                  const sendReceipt = req.body.sendReceipt === 'true' ? true : false;
+                                  console.log(">>>>",sendReceipt);
+                                  if(vehicleRegistrationId === '' || appointmentDate === ''){
                                     res.status(401);
                                     res.send("Please Enter Id")
                                   }else{
@@ -52,10 +53,16 @@ const uploadReceipt = async(req,res,next) => {
                                                            UPDATE vehicle_registration_details set vehicleWorkStatus = 'APPOINTMENT' WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
                                                            console.log("sqll",sql_add_Receipt);
                                       pool.query(sql_add_Receipt,(err,data)=>{
-                                      if(err) return res.json(err);
+                                      if(err) return res.status(404).send(err);
                                         res.locals.id = id;
                                          console.log("local1",res.locals.id);
-                                          next();
+                                         console.log("???????",sendReceipt);
+                                         sendReceipt ? next() : res.status(200).send("Ok");
+                                        //  if(sendReceipt === true){
+                                        //   next()
+                                        //  }else{
+                                        //   res.status(200).send("Ok");
+                                        //  }
                                     })
                                   }
                               })
@@ -63,7 +70,7 @@ const uploadReceipt = async(req,res,next) => {
                       }else{
                         sql_getNextstep = `SELECT nextState FROM vehicle_registration_details WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
                         pool.query(sql_getNextstep,(err,data)=>{
-                          if(err) return res.json(err);
+                          if(err) return res.status(404).send(err);
                           var state = data[0]['nextState'];
                           console.log("state",state);
                             if(state === 2){

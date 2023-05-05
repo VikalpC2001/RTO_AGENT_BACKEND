@@ -11,12 +11,12 @@ const fillUpdateDetailForDealer = async(req,res) =>{
         sql_queries_getdetails = `SELECT dealerFirstName,dealerLastName,dealerGender,dealerFirmName,dealerFirmAddressLine1,dealerFirmAddressLine2,dealerFirmState,dealerFirmCity,dealerFirmPincode,dealerDisplayName,dealerMobileNumber,dealerWhatsAppNumber,dealerEmailId FROM dealer_details 
                                   WHERE dealerId = '${dealerId}'`;
         pool.query(sql_queries_getdetails,(err,data)=>{
-        if(err) return res.send(err);
+        if(err) return res.status(404).send(err);
         console.log(">>>>",data);  
         return res.json(data[0]);
     })
     }catch(error){
-        throw new Error('UnsuccessFull',error);
+        throw new Error(error);
     }   
 }
 
@@ -39,16 +39,25 @@ const getDealerDetailsById = async(req,res) =>{
                                                       INNER JOIN state_data ON dealer_details.dealerFirmState = state_data.stateId
                                                       INNER JOIN city_data ON dealer_details.dealerFirmCity = city_data.cityId
                                                       WHERE dealerId = '${data.dealerId}';
-                                      SELECT COUNT(*) AS TotalBooksOfDealer FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}';
-                                      SELECT COUNT(*) AS PendingBooksOfDealer FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}' AND vehicleWorkStatus = "PENDING";
-                                      SELECT COUNT(*) AS AppointmentBooksOfDealer FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}' AND vehicleWorkStatus = "APPOINTMENT";
-                                      SELECT COUNT(*) AS CompleteBooksOfDealer FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}' AND vehicleWorkStatus = "COMPLETE";
-                                      SELECT COUNT(*) AS LastMonthBooksOfDealer FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}' AND vehicleRegistrationCreationDate BETWEEN STR_TO_DATE('${firstDay}','%b %d %Y') AND STR_TO_DATE('${lastDay}','%b %d %Y');                                    
-                                      SELECT COUNT(*) AS LastUpdatedBooksOfDealer FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}' AND vehicleRegistrationCreationDate = (SELECT MAX(vehicleRegistrationCreationDate) FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}');`;
+                                                      SELECT COUNT(*) AS TotalBooksOfDealer FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}';
+                                                      SELECT COUNT(*) AS PendingBooksOfDealer FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}' AND vehicleWorkStatus = "PENDING";
+                                                      SELECT COUNT(*) AS AppointmentBooksOfDealer FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}' AND vehicleWorkStatus = "APPOINTMENT";
+                                                      SELECT COUNT(*) AS CompleteBooksOfDealer FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}' AND vehicleWorkStatus = "COMPLETE";
+                                                      SELECT COUNT(*) AS LastMonthBooksOfDealer FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}' AND vehicleRegistrationCreationDate BETWEEN STR_TO_DATE('${firstDay}','%b %d %Y') AND STR_TO_DATE('${lastDay}','%b %d %Y');                                    
+                                                      SELECT COUNT(*) AS LastUpdatedBooksOfDealer FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}' AND vehicleRegistrationCreationDate = (SELECT MAX(vehicleRegistrationCreationDate) FROM vehicle_registration_details WHERE dealerId = '${data.dealerId}');`;
 
         pool.query(sql_queries_getdetailsByid,(err,data)=>{
-            if(err) return res.send(err);
-            return res.json(data);
+            if(err) return res.status(404).send(err);
+            const Dealerdetails = data[0][0]
+            const DealerCounterdetails = {
+                'TotalBooksOfDealer'        : data[1][0]['TotalBooksOfDealer'],
+                'PendingBooksOfDealer'      : data[2][0]['PendingBooksOfDealer'],
+                'AppointmentBooksOfDealer'  : data[3][0]['AppointmentBooksOfDealer'],
+                'CompleteBooksOfDealer'     : data[4][0]['CompleteBooksOfDealer'],
+                'LastMonthBooksOfDealer'    : data[5][0]['LastMonthBooksOfDealer'],
+                'LastUpdatedBooksOfDealer'  : data[6][0]['LastUpdatedBooksOfDealer']
+            }
+            return res.json({Dealerdetails,DealerCounterdetails});
         })
     }catch(error){
         throw new Error('UnsuccessFull',error);
@@ -79,8 +88,7 @@ const getDealerDetailsByAgentId = async(req,res) =>{
                     const sql_sortquery_getdetails = `SELECT dealerId, dealerFirmName,CONCAT(dealerFirstName," ",dealerLastName) AS dealerName, dealerDisplayName, dealerMobileNumber, dealerWhatsAppNumber FROM dealer_details WHERE agentId = '${agentId}' ORDER BY ${sort} LIMIT `
                     pool.query(sql_sortquery_getdetails + limit,(err, rows, fields) =>{
                         if(err) {
-                            console.log("error: ", err);
-                            res.send(err, null);
+                            return res.status(404).send(err);
                         }else{
                             console.log(rows);
                             console.log(numRows);
@@ -96,8 +104,7 @@ const getDealerDetailsByAgentId = async(req,res) =>{
             res.send("Please Login Firest.....!");
         }
     }catch(error){
-        res.send("Please Login Firest.....!");
-        throw new Error('UnsuccessFull',error);
+        throw new Error(error);
     }   
 }
 
@@ -132,14 +139,17 @@ const addDealerDetails = async(req,res) =>{
                 dealerEmailId           :   req.body.dealerEmailId
             }
             
-            if(!data.dealerFirstName || !data.dealerLastName || !data.dealerGender || !data.dealerFirmName || !data.dealerFirmAddressLine1 || !data.dealerFirmAddressLine2 || !data.dealerFirmState || !data.dealerFirmCity || !data.dealerFirmPincode || !data.dealerDisplayName || !data.dealerMobileNumber|| !data.dealerWhatsAppNumber) {
+            if(!data.dealerFirstName || !data.dealerLastName || !data.dealerGender || 
+               !data.dealerFirmName || !data.dealerFirmAddressLine1 || !data.dealerFirmAddressLine2 ||
+               !data.dealerFirmState || !data.dealerFirmCity || !data.dealerFirmPincode || !data.dealerDisplayName ||
+               !data.dealerMobileNumber|| !data.dealerWhatsAppNumber) {
                 res.status(401);
                 res.send("Please Fill all the feilds")
             }else{
             sql_queries_adddetails = `INSERT INTO dealer_details (dealerId, agentId, dealerFirstName, dealerLastName, 
                                                                   dealerGender, dealerFirmName, dealerFirmAddressLine1, 
-                                                                  dealerFirmAddressLine2, dealerFirmState, dealerFirmCity
-                                                                  ,dealerFirmPincode, dealerDisplayName, dealerMobileNumber, 
+                                                                  dealerFirmAddressLine2, dealerFirmState, dealerFirmCity,
+                                                                  dealerFirmPincode, dealerDisplayName, dealerMobileNumber, 
                                                                   dealerWhatsAppNumber, dealerEmailId)
                                       VALUES ('${id}','${agentId}','${data.dealerFirstName}','${data.dealerLastName}',
                                               '${data.dealerGender}','${data.dealerFirmName}','${data.dealerFirmAddressLine1}',
@@ -147,7 +157,7 @@ const addDealerDetails = async(req,res) =>{
                                               '${data.dealerFirmPincode}','${data.dealerDisplayName}','${data.dealerMobileNumber}',
                                               '${data.dealerWhatsAppNumber}','${data.dealerEmailId}')`;
             pool.query(sql_queries_adddetails,(err,data) =>{
-                if(err) return res.send(err);
+                if(err) return res.status(404).send(err);
                 return res.status(200),
                 res.json("Dealer Inserted Successfully");
             })}
@@ -174,7 +184,7 @@ const removeDealerDetails = async(req,res)=>{
                                    LEFT JOIN rto_receipt_data ON rto_receipt_data.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                    WHERE vehicle_registration_details.dealerId = '${dealerId}'`;
         pool.query(get_googleDriveId,(err,data) =>{
-        if(err) return res.send(err);
+        if(err) return res.status(404).send(err);
         const ttoGoogledriveId1 = data[0];
         const receiptGoogledriveId2 = data[1];
         const allId = ttoGoogledriveId1.concat(receiptGoogledriveId2);
@@ -184,7 +194,6 @@ const removeDealerDetails = async(req,res)=>{
                 return e.DriveId !== null;
               });
         }
-
           console.log("goglDiiiiiiiiiiiid",GoogleDId);
           if(GoogleDId){
             GoogleDId.map(a => {GoogleDelete.deleteGoogleFileforTTO(a.DriveId)});
@@ -194,7 +203,7 @@ const removeDealerDetails = async(req,res)=>{
                     sql_queries_removedetails = `DELETE FROM dealer_details WHERE dealer_details.dealerId = '${dealerId}'`;
                     pool.query(sql_queries_removedetails,(err,data)=>{
                 if(data){
-                if(err) return res.send(err);
+                if(err) return res.status(404).send(err);
                 return res.json({status:200, message:"Dealer Deleted Successfully"});
                 }
             })   
@@ -207,22 +216,6 @@ const removeDealerDetails = async(req,res)=>{
         throw new Error(error);
     }                      
 }
-
-// const removeDealerDetails = async(req,res)=>{
-
-//     try{
-//         const data = {
-//             dealerId : req.query.dealerId
-//         }
-//         sql_queries_removedetails = `DELETE FROM dealer_details WHERE dealerId = '${data.dealerId}'`;
-//         pool.query(sql_queries_removedetails,(err,data)=>{
-//             if(err) return res.send(err);
-//             return res.json(data);
-//         })
-//     }catch(error){
-//         throw new Error('UnsuccessFull',error);
-//     }                      
-// }
 
 const updateDealerDetails = async(req,res) =>{
 
@@ -276,7 +269,7 @@ const ddlDealerByAgentId = async(req,res) =>{
             const agentId = decoded.id.id;
             const sql_querry_getdetails = `SELECT dealerId,CONCAT(dealerFirmName,'(',dealerDisplayName,')') as dealerDisplayName FROM dealer_details WHERE agentId = '${agentId}'`;
             pool.query(sql_querry_getdetails,(err,data)=>{
-                if(err) return res.json(err)
+                if(err) return res.status(404).send(err);
                 return res.json(data)
                })
         }else{
@@ -284,8 +277,7 @@ const ddlDealerByAgentId = async(req,res) =>{
             res.send("Please Login Firest.....!");
         }
     }catch(error){
-        res.send("Please Login Firest.....!");
-        throw new Error('UnsuccessFull',error);
+        throw new Error(error);
     }   
 }
 

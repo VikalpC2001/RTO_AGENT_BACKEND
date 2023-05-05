@@ -248,7 +248,7 @@ const genrateTTOform = async(req,res) => {
                                                LEFT JOIN insurance_data ON insurance_data.insuranceId = vehicle_registration_details.insuranceCompanyNameId
                                                WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
             pool.query(sql_querry_getdetailsById,(err,data)=>{
-              if(err) return res.json(err);
+              if(err) return res.status(404).send(err);
               var temp;
               fillPDFdata(data)
               .then((rest)=>{
@@ -257,7 +257,7 @@ const genrateTTOform = async(req,res) => {
                  sql_add_PDF = `INSERT INTO tto_form_data (vehicleRegistrationId, pdfURL, pdfgoogleDriveId) 
                                               VALUES ('${vehicleRegistrationId}','${pdfURL}','${rest}')`
                  pool.query(sql_add_PDF,(err,data)=>{
-                   if(err) return res.json(err);
+                   if(err) return res.status(404).send(err);;
                    return res.status(200),
                           res.json("Ok");
                  })

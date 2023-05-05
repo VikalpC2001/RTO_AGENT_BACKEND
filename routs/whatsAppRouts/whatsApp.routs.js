@@ -3,8 +3,9 @@ const router = require('express').Router();
 
 const whatsAppController = require('../../controller/WhatsAppController/whatsApp.controller');
 
-router.get('/meta_wa_callbackurl',whatsAppController.sendReceipte);
+router.get('/meta_wa_callbackurl',whatsAppController.meta_wa_callbackurl);
 router.post('/sendReceipte',whatsAppController.sendReceipte);
+router.get('/sendReceiptOnWapp',whatsAppController.sendReceiptOnWapp);
 
 'use strict';
 // const router = require('express').Router();
@@ -120,37 +121,37 @@ router.post('/meta_wa_callbackurl', asyncHandler(async(req, res) => {
                console.log("from "+from);
                console.log("boady param "+msg_body);
                console.log('VVVVVVV',token)
-              await axios({
-                   method:"POST",
-                   url:"https://graph.facebook.com/v15.0/"+phon_no_id+"/messages/",
-                   data:{
-                       messaging_product:"whatsapp",
-                       to:from,
-                       type:"document",
-                    //    text:{
-                    //        body:"Hi.. I'm jay, your message is "+msg_body
-                    //    },
-                       document: {
-                        link: "https://drive.google.com/uc?export=view&id=1WUWMRx2g0JIfRNZjJWU1Bui7iuBph6XM",
-                        caption: "Chodina Error solw kar je tu msg avi gyo"
-                      }
+            //   await axios({
+            //        method:"POST",
+            //        url:"https://graph.facebook.com/v16.0/"+phon_no_id+"/messages/",
+            //        data:{
+            //            messaging_product:"whatsapp",
+            //            to:from,
+            //            type:"document",
+            //         //    text:{
+            //         //        body:"Hi.. I'm jay, your message is "+msg_body
+            //         //    },
+            //            document: {
+            //             link: "https://drive.google.com/uc?export=view&id=1WUWMRx2g0JIfRNZjJWU1Bui7iuBph6XM",
+            //             caption: "succeess"
+            //           }
                       
-                   },
-                   headers:{
-                        'Authorization': 'Bearer '+token,
-                       'Content-Type':"application/json"
-                   }
+            //        },
+            //        headers:{
+            //             'Authorization': 'Bearer '+token,
+            //            'Content-Type':"application/json"
+            //        }
 
-               })
-               .then((resp)=>{
-                    console.log(resp);
-                    res.sendStatus(200)
-               })
-               .catch((error)=>{
-                console.log(error)
-                res.send(error)
-               })
-               
+            //    })
+            //    .then((resp)=>{
+            //         console.log(resp);
+            //         res.sendStatus(200)
+            //    })
+            //    .catch((error)=>{
+            //     console.log(error)
+            //     res.send(error)
+            //    })
+            res.sendStatus(200)
             }else{
                 res.sendStatus(404);
             }

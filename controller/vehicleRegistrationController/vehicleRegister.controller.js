@@ -27,12 +27,12 @@ const authenticateGoogle = () => {
                                           SELECT COUNT(*) AS CompleteBooksOfAgent FROM vehicle_registration_details WHERE agentId = '${agentId}' AND vehicleWorkStatus = "COMPLETE";                                   `;
 
             pool.query(sql_queries_getdetailsByid,(err,data)=>{
-            if(err) return res.send(err);
+            if(err) return res.status(404).send(err);
             const Number = {
-                'ALL Book'             : data[0][0]['TotalBooksOfAgent'],
-                'ALL Pending Book'     : data[1][0]['PendingBooksOfAgent'],
-                'ALL Appointment Book' : data[2][0]['AppointmentBooksOfAgent'],
-                'ALL Complete Book'    : data[3][0]['CompleteBooksOfAgent']
+                'AllBook'            : data[0][0]['TotalBooksOfAgent'],
+                'AllPendingBook'     : data[1][0]['PendingBooksOfAgent'],
+                'AllAppointmentBook' : data[2][0]['AppointmentBooksOfAgent'],
+                'AllCompleteBook'    : data[3][0]['CompleteBooksOfAgent']
             }
             return res.json(Number);
             })       
@@ -58,13 +58,14 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             const agentId = decoded.id.id;
             const data = {
-                searchOption :  req.query.searchOption,
-                startDate    :  new Date(req.query.startDate?req.query.startDate:null).toString().slice(4,15),
-                endDate      :  new Date(req.query.endDate?req.query.endDate:null).toString().slice(4,15),
-                dealerId     :  req.query.dealerId,
-                workStatus   :  req.query.workStatus,
-                workCategory :  req.query.workCategory,
-                searchWord   :  req.query.searchWord
+                searchOption    :  req.query.searchOption,
+                startDate       :  new Date(req.query.startDate?req.query.startDate:null).toString().slice(4,15),
+                endDate         :  new Date(req.query.endDate?req.query.endDate:null).toString().slice(4,15),
+                appointmentDate :  new Date(req.query.appointmentDate?req.query.appointmentDate:null).toString().slice(4,15),
+                dealerId        :  req.query.dealerId,
+                workStatus      :  req.query.workStatus,
+                workCategory    :  req.query.workCategory,
+                searchWord      :  req.query.searchWord
             }
             if(req.query.searchWord){
 
@@ -114,6 +115,10 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
 
                 sql_queries_getVehicleDetailsPagination = `SELECT count(*) as numRows FROM vehicle_registration_details WHERE vehicle_registration_details.agentId = '${agentId}' AND vehicle_registration_details.dealerId = '${data.dealerId}' AND vehicleWorkStatus = '${data.workStatus}'`;
 
+            }else if(req.query.appointmentDate && req.query.workStatus === 'APPOINTMENT'){
+
+                sql_queries_getVehicleDetailsPagination = `SELECT count(*) as numRows FROM vehicle_registration_details LEFT JOIN rto_receipt_data ON rto_receipt_data.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId WHERE vehicle_registration_details.agentId = '${agentId}' AND rto_receipt_data.appointmentDate = STR_TO_DATE('${data.appointmentDate}','%b %d %Y')`;
+
             }else if(req.query.workCategory){
 
                 sql_queries_getVehicleDetailsPagination = `SELECT count(*) as numRows FROM vehicle_registration_details WHERE vehicle_registration_details.agentId = '${agentId}' AND currentState = ${data.workCategory}`;
@@ -130,7 +135,8 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
 
                 sql_queries_getVehicleDetailsPagination = `SELECT count(*) as numRows FROM vehicle_registration_details WHERE vehicle_registration_details.agentId = '${agentId}' AND vehicleWorkStatus = '${data.workStatus}'`;
 
-            }else if(req.query.searchOption === 'lastUpdated'){
+            }
+            else if(req.query.searchOption === 'lastUpdated'){
 
                 sql_queries_getVehicleDetailsPagination = `SELECT count(*) as numRows FROM vehicle_registration_details WHERE vehicle_registration_details.agentId = '${agentId}' AND vehicleRegistrationCreationDate = (SELECT MAX(vehicleRegistrationCreationDate) FROM vehicle_registration_details WHERE agentId = '${agentId}')`;
 
@@ -278,6 +284,18 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                                             WHERE vehicle_registration_details.agentId = '${agentId}' AND vehicle_registration_details.dealerId = '${data.dealerId}' AND vehicleWorkStatus = '${data.workStatus}'
                                             GROUP BY work_list.vehicleRegistrationId ORDER BY RIGHT(vehicleRegistrationNumber,4) LIMIT ${limit}`;
 
+                    }else if(req.query.appointmentDate && req.query.workStatus === 'APPOINTMENT'){
+
+                        sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus ,DATE_FORMAT(rto_receipt_data.appointmentDate, "%M %d %Y") 
+                                            FROM vehicle_registration_details
+                                            Inner JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
+                                            LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
+                                            LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
+                                            LEFT JOIN rto_receipt_data ON rto_receipt_data.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
+                                            WHERE vehicle_registration_details.agentId = '${agentId}' AND rto_receipt_data.appointmentDate = STR_TO_DATE('${data.appointmentDate}','%b %d %Y')
+                                            GROUP BY work_list.vehicleRegistrationId ORDER BY RIGHT(vehicleRegistrationNumber,4) LIMIT ${limit}`;
+
                     }else if(req.query.workCategory){
 
                         sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) AS vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
@@ -347,8 +365,7 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                     }
                     pool.query(sql_query,(err, rows, fields) =>{
                         if(err) {
-                            console.log("error: ", err);
-                            res.send(err, null);
+                            return res.status(404).send(err);
                         }else{
                             // console.log(rows);
                             // console.log(numRows);
@@ -375,8 +392,8 @@ const getVehicleRegistrationDetailsById = async(req,res) =>{
         const data = {
             vehicleRegistrationId : req.query.vehicleRegistrationId
         }
-        sql_queries_getdetailsByid = `SELECT UPPER(vehicleRegistrationNumber) AS "Regsitration Number", vehicleChassisNumber AS "Chassis Number", vehicleEngineNumber AS "Engine Number", (vehicle_class_data.vehicleClassName) AS "Vehicle Class",
-                                             (vehicle_category_data.vehicleCategoryName) AS "Vehicle Category", UPPER(vehicleMake) AS " Vehicle Make", UPPER(vehicleModel) AS "Vehicle Model", DATE_FORMAT(vehicleRegistrationDate, '%d-%M-%Y') AS "Vehicle Registration Date", (rto_city_data.cityRTOName) AS "Serviceing Authority"
+        sql_queries_getdetailsByid = `SELECT UPPER(vehicleRegistrationNumber) AS "Regsitration Number", vehicleChassisNumber AS "Chassis Number", vehicleEngineNumber AS "Engine Number", (vehicle_class_data.vehicleClassName) AS "Class",
+                                             (vehicle_category_data.vehicleCategoryName) AS "Category", UPPER(vehicleMake) AS "Make", UPPER(vehicleModel) AS "Model", DATE_FORMAT(vehicleRegistrationDate, '%d-%M-%Y') AS "Registration Date", (rto_city_data.cityRTOName) AS "Serviceing Authority"
                                              FROM vehicle_registration_details
                                              LEFT JOIN vehicle_category_data ON vehicle_category_data.vehicleCategoryId = vehicle_registration_details.vehicleCategory
                                              LEFT JOIN vehicle_class_data ON vehicle_class_data.vehicleClassId = vehicle_registration_details.vehicleClass
@@ -395,16 +412,17 @@ const getVehicleRegistrationDetailsById = async(req,res) =>{
                                              FROM vehicle_registration_details
                                              LEFT JOIN insurance_data ON insurance_data.insuranceId = vehicle_registration_details.insuranceCompanyNameId
                                              WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}';
-                                      SELECT vehicleWorkStatus AS "Status", comment AS "Comment", DATE_FORMAT(vehicleRegistrationCreationDate, '%d %M %Y') AS "Rrgistration Date"
+                                      SELECT vehicleWorkStatus AS "Status", comment AS "Comment", DATE_FORMAT(vehicleRegistrationCreationDate, '%d %M %Y') AS "Rrgister Date"
                                              FROM vehicle_registration_details
                                              WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}';
-                                      SELECT GROUP_CONCAT(rto_work_data.workName SEPARATOR ', ') as workType, COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer", clientWhatsAppNumber AS "WhatsApp Number"
+                                      SELECT GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType, COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer", clientWhatsAppNumber AS "WhatsApp Number"
                                              FROM vehicle_registration_details
                                              INNER JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                              INNER JOIN rto_work_data ON rto_work_data.workId = work_list.workId
                                              LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
                                              WHERE vehicle_registration_details.vehicleRegistrationId = '${data.vehicleRegistrationId}' GROUP BY work_list.vehicleRegistrationId;
-                                      SELECT pdfURL FROM tto_form_data WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}'`;
+                                      SELECT pdfURL FROM tto_form_data WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}';
+                                      SELECT receiptId FROM rto_receipt_data WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}' AND receiptCreationDate = (SELECT MAX(receiptCreationDate) FROM rto_receipt_data WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}');`;
         pool.query(sql_queries_getdetailsByid,(err,data)=>{
             if(err) return res.status(404).send(err);
             const resData = {
@@ -414,7 +432,8 @@ const getVehicleRegistrationDetailsById = async(req,res) =>{
                 'Insurance Details'     : data[3][0],
                 'Status'                : data[4][0],
                 'Customer Details'      : data[5][0],
-                'TTO Form Link'         : data[6][0]    
+                'TTO Form Link'         : data[6][0],
+                'Receipt Id'            : data[7][0]    
              }
             console.log(">>>>",data)
             return res.json(resData);
@@ -473,12 +492,13 @@ const exportExcelSheetForVehicleDetails = (req, res) => {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             const agentId = decoded.id.id;
             const data = {
-                searchOption :  req.query.searchOption,
-                startDate    :  new Date(req.query.startDate?req.query.startDate:null).toString().slice(4,15),
-                endDate      :  new Date(req.query.endDate?req.query.endDate:null).toString().slice(4,15),
-                dealerId     :  req.query.dealerId,
-                workStatus   :  req.query.workStatus,
-                workCategory :  req.query.workCategory,         
+                searchOption    :  req.query.searchOption,
+                startDate       :  new Date(req.query.startDate?req.query.startDate:null).toString().slice(4,15),
+                endDate         :  new Date(req.query.endDate?req.query.endDate:null).toString().slice(4,15),
+                appointmentDate :  new Date(req.query.appointmentDate?req.query.appointmentDate:null).toString().slice(4,15),
+                dealerId        :  req.query.dealerId,
+                workStatus      :  req.query.workStatus,
+                workCategory    :  req.query.workCategory,         
             }
 
             if(req.query.workCategory && req.query.workStatus && req.query.startDate && req.query.endDate && req.query.dealerId){
@@ -600,6 +620,18 @@ const exportExcelSheetForVehicleDetails = (req, res) => {
                                                  LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
                                                  LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
                                                  WHERE vehicle_registration_details.agentId = '${agentId}' AND vehicle_registration_details.dealerId = '${data.dealerId}' AND vehicleWorkStatus = '${data.workStatus}'
+                                                 GROUP BY work_list.vehicleRegistrationId ORDER BY RIGHT(vehicleRegistrationNumber,4)`;
+
+            }else if(req.query.appointmentDate && req.query.workStatus === 'APPOINTMENT'){
+
+                sql_queries_getdetails = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
+                                                 COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus ,DATE_FORMAT(rto_receipt_data.appointmentDate, "%M %d %Y") 
+                                                 FROM vehicle_registration_details
+                                                 Inner JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
+                                                 LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
+                                                 LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
+                                                 LEFT JOIN rto_receipt_data ON rto_receipt_data.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
+                                                 WHERE vehicle_registration_details.agentId = '${agentId}' AND rto_receipt_data.appointmentDate = STR_TO_DATE('${data.appointmentDate}','%b %d %Y')
                                                  GROUP BY work_list.vehicleRegistrationId ORDER BY RIGHT(vehicleRegistrationNumber,4)`;
 
             }else if(req.query.workCategory){
@@ -727,11 +759,7 @@ const exportExcelSheetForVehicleDetails = (req, res) => {
 			        //         console.log('File write done........');
 		            //     });
                }catch(err) {
-                    res.send({
-                    status: 404,
-                    message: "Something went wrong",
-                  });
-                throw new Error(err);
+                    throw new Error(err);
                }
             })
         }else{
@@ -961,13 +989,12 @@ const removeVehicleRegistrationDetails = async(req,res)=>{
                 }}
                 );
         }
-       
             req.query.agentEmailId = pool.query(`SELECT vehicleRegistrationId FROM vehicle_registration_details WHERE vehicleRegistrationId= '${vehicleRegistrationId}'`, (err, row)=>{
                 if (row && row.length) {
                     sql_queries_removedetails = `DELETE FROM vehicle_registration_details WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
                     pool.query(sql_queries_removedetails,(err,data)=>{
                 if(data){
-                if(err) return res.send(err);
+                if(err) return res.status(404).send(err);
                 return res.json({status:200, message:"Vehicle Deleted Successfully"});
                 }
             })   
@@ -1192,7 +1219,7 @@ const updateVehicleRegistrationDetails = async(req,res,next) =>{
                     if(err) return res.status(404).send(err);
                     sql_getTTOdriveId = `SELECT pdfGoogleDriveId as DriveId FROM tto_form_data WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
                     pool.query(sql_getTTOdriveId,(err,data) =>{
-                        if(err) return res.send(err);
+                        if(err) return res.status(404).send(err);
                         // const ttoGoogledriveId1 = data[0];
                         // const gDriveId = ttoGoogledriveId1;
                         // console.log("ttttttttttt",gDriveId);
@@ -1206,7 +1233,7 @@ const updateVehicleRegistrationDetails = async(req,res,next) =>{
                                     sql_queries_removedetails = `DELETE FROM tto_form_data WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
                                     pool.query(sql_queries_removedetails,(err,data)=>{
                                 if(data){
-                                if(err) return res.send(err);
+                                if(err) return res.status(404).send(err);
                                 res.locals.id = vehicleRegistrationId;
                                 if(req.body.TO == true){
                                     next();

@@ -15,7 +15,7 @@ const getBookList = async(req,res,next)=>{
         sql_Book_List = `SELECT vehicleRegistrationId ,vehicleRegistrationNumber FROM vehicle_registration_details WHERE agentId = '${agentId}'`;
         pool.query(sql_Book_List,(err, rows)=>{
             console.log(">>>",rows);
-            if(err) return res.json(err)
+            if(err) return res.status(404).send(err);
             return res.json(rows);
         })
     }else{
@@ -42,7 +42,7 @@ const getDealerList = async(req,res,next)=>{
             const sql_sortquery_getdetails = `SELECT dealerId, dealerFirmName, dealerDisplayName FROM dealer_details WHERE agentId = '${agentId}'`;
             pool.query(sql_sortquery_getdetails,(err, rows)=>{
                 console.log(">>>",rows);
-                if(err) return res.json(err)
+                if(err) return res.status(404).send(err);
                 return res.json(rows);
             })
         }else{
@@ -50,8 +50,7 @@ const getDealerList = async(req,res,next)=>{
             res.send("Please Login Firest.....!");
         }
     }catch(error){
-        res.send("Please Login Firest.....!");
-        throw new Error('UnsuccessFull',error);
+        throw new Error(error);
     }   
 
     // sql_Book_List = `SELECT dealerFirmName,dealerDisplayName FROM dealer_details`    

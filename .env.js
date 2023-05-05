@@ -6,8 +6,8 @@ const production = {
 const development = {
     ...process.env,
     NODE_ENV: process.env.NODE_ENV || 'development',
-    Meta_WA_SenderPhoneNumberId: '110836215242868',
-    Meta_WA_wabaId: '105361492465196',
+    Meta_WA_SenderPhoneNumberId: '117691311304482',
+    Meta_WA_wabaId: '105371802550256',
     Meta_WA_VerifyToken: 'jay',
 };
 
