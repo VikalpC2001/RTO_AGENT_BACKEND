@@ -67,9 +67,13 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                 workCategory    :  req.query.workCategory,
                 searchWord      :  req.query.searchWord
             }
-            if(req.query.searchWord){
+            if(req.query.dealerId && req.query.searchWord){
 
-                sql_queries_getVehicleDetailsPagination = `SELECT count(*) as numRows FROM vehicle_registration_details WHERE vehicle_registration_details.agentId = '${agentId}' AND vehicleRegistrationNumber LIKE'%`+data.searchWord+`%'`
+                sql_queries_getVehicleDetailsPagination = `SELECT count(*) as numRows FROM vehicle_registration_details WHERE vehicle_registration_details.agentId = '${agentId}' AND vehicle_registration_details.dealerId = '${data.dealerId}' AND vehicleRegistrationNumber LIKE'%`+data.searchWord+`%'`;
+
+            }else if(req.query.searchWord){
+
+                sql_queries_getVehicleDetailsPagination = `SELECT count(*) as numRows FROM vehicle_registration_details WHERE vehicle_registration_details.agentId = '${agentId}' AND vehicleRegistrationNumber LIKE'%`+data.searchWord+`%'`;
             
             }else if(req.query.workCategory && req.query.workStatus && req.query.startDate && req.query.endDate && req.query.dealerId){
 
@@ -152,7 +156,18 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                 }else{
                     const numRows = rows[0].numRows;
                     const numPages = Math.ceil(numRows / numPerPage);
-                    if(req.query.searchWord){
+                    if(req.query.dealerId && req.query.searchWord){
+
+                        sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
+                                            COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus  
+                                            FROM vehicle_registration_details
+                                            LEFT JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
+                                            LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
+                                            LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
+                                            WHERE vehicle_registration_details.agentId = '${agentId}' AND vehicle_registration_details.dealerId = '${data.dealerId}' AND vehicleRegistrationNumber LIKE'%`+data.searchWord+`%'
+                                            GROUP BY work_list.vehicleRegistrationId ORDER BY RIGHT(vehicleRegistrationNumber,4) LIMIT ${limit}`;
+
+                    }else if(req.query.searchWord){
                         sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
                                                     COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus  
                                                     FROM vehicle_registration_details
@@ -162,8 +177,7 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                                                     WHERE vehicle_registration_details.agentId = '${agentId}' AND vehicleRegistrationNumber LIKE'%`+data.searchWord+`%'
                                                     GROUP BY work_list.vehicleRegistrationId ORDER BY RIGHT(vehicleRegistrationNumber,4) LIMIT ${limit}`;
         
-                    }
-                    else if(req.query.workCategory && req.query.workStatus && req.query.startDate && req.query.endDate && req.query.dealerId){
+                    }else if(req.query.workCategory && req.query.workStatus && req.query.startDate && req.query.endDate && req.query.dealerId){
 
                         sql_query = `SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) AS vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
                                             COALESCE(CONCAT(dealer_details.dealerFirmName,"(",dealer_details.dealerDisplayName,")"),privateCustomerName) AS "Dealer/Customer" ,clientWhatsAppNumber ,vehicleWorkStatus  
@@ -326,7 +340,7 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                                             LEFT JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
                                             LEFT JOIN rto_work_data ON rto_work_data.workId = work_list.workId
                                             LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
-                                            WHERE vehicle_registration_details.agentId = '${agentId}' AND vehicle_registration_details.dealerId = '${data.dealerId}'
+                                            WHERE vehicle_registration_details.agentId = '${agentId}' AND vehicle_registration_details.dealerId = '${data.dealerId}' 
                                             GROUP BY work_list.vehicleRegistrationId ORDER BY RIGHT(vehicleRegistrationNumber,4) LIMIT ${limit}`;
 
                     }else if(req.query.workStatus){
@@ -363,6 +377,7 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                                             GROUP BY work_list.vehicleRegistrationId ORDER BY RIGHT(vehicleRegistrationNumber,4) LIMIT ${limit}`;
 
                     }
+                    console.log(">>",sql_query);
                     pool.query(sql_query,(err, rows, fields) =>{
                         if(err) {
                             return res.status(404).send(err);
