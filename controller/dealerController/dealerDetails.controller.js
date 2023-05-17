@@ -93,7 +93,14 @@ const getDealerDetailsByAgentId = async(req,res) =>{
                             console.log(rows);
                             console.log(numRows);
                             console.log("Total Page :-",numPages);
-                            return res.send({rows,numRows});
+                            if(numRows === 0){
+                                const rows = [{
+                                    'msg' : 'No Data Found'
+                                }]
+                                return res.send({rows,numRows});
+                            }else{
+                                return res.send({rows,numRows});
+                            }
                             // res.send(null,fields,data,numPages);
                         }
                     });

@@ -16,6 +16,14 @@ const authenticateGoogle = () => {
 
   const dashBoardCountNumber = async(req,res) =>{
     try{
+        var d = new Date('09/09/2007');
+        (d.setDate(d.getDate() - 1));
+        console.log(">>>",d.toString());
+        var a = new Date(d)
+        a.setFullYear(a.getFullYear() + 1);
+        console.log("???",a.toString());
+        
+
         let token;
         token = req.headers.authorization.split(" ")[1];
         if(token){
@@ -385,7 +393,14 @@ const getListOfVehicleRegistrationDetails = async(req,res)=>{
                             // console.log(rows);
                             // console.log(numRows);
                             // console.log("Total Page :-",numPages);
-                            return res.send({rows,numRows});
+                            if(numRows === 0){
+                                const rows = [{
+                                    'msg' : 'No Data Found'
+                                }]
+                                return res.send({rows,numRows});
+                            }else{
+                                return res.send({rows,numRows});
+                            }
                             // res.send(null,fields,data,numPages);
                         }
                     });
@@ -437,7 +452,7 @@ const getVehicleRegistrationDetailsById = async(req,res) =>{
                                              LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
                                              WHERE vehicle_registration_details.vehicleRegistrationId = '${data.vehicleRegistrationId}' GROUP BY work_list.vehicleRegistrationId;
                                       SELECT pdfURL FROM tto_form_data WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}';
-                                      SELECT receiptId FROM rto_receipt_data WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}' AND receiptCreationDate = (SELECT MAX(receiptCreationDate) FROM rto_receipt_data WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}');`;
+                                      SELECT receiptId, receiptURL FROM rto_receipt_data WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}' AND receiptCreationDate = (SELECT MAX(receiptCreationDate) FROM rto_receipt_data WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}');`;
         pool.query(sql_queries_getdetailsByid,(err,data)=>{
             if(err) return res.status(404).send(err);
             const resData = {
@@ -477,7 +492,7 @@ const getVehicleRegistrationDetailsBydealerId = async(req,res) => {
         }else{
             const numRows = rows[0].numRows;
             const numPages = Math.ceil(numRows / numPerPage);
-            pool.query(`SELECT @a:=@a+1 AS serial_number,vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) AS vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
+            pool.query(`SELECT vehicle_registration_details.vehicleRegistrationId, UPPER(vehicleRegistrationNumber) AS vehicleRegistrationNumber, GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ', ') as workType,
                                UPPER(CONCAT(vehicleMake,"/",vehicleModel)) AS vehicleModelMake, clientWhatsAppNumber 
                                FROM (SELECT @a:= 0) AS a, vehicle_registration_details
                                INNER JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId

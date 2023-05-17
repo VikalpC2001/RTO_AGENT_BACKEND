@@ -84,7 +84,7 @@ const sendReceipte = asyncHandler(async(req, res) => {
                 "to": "91"+dealerWhatsappNumber,
                 "type": "template",
                 "template": {
-                  "name": "rtowithnumber",
+                  "name": "updated",
                   "language": {
                     "code": "en"
                   },
@@ -135,7 +135,7 @@ const sendReceipte = asyncHandler(async(req, res) => {
                 "to": "91"+clientWhatsAppNumber,
                 "type": "template",
                 "template": {
-                  "name": "rtowithnumber",
+                  "name": "updated",
                   "language": {
                     "code": "en"
                   },
@@ -232,7 +232,7 @@ const sendReceiptOnWapp = (req,res) => {
                   "to": "91"+dealerWhatsappNumber,
                   "type": "template",
                   "template": {
-                    "name": "rtowithnumber",
+                    "name": "updated",
                     "language": {
                       "code": "en"
                     },
@@ -283,7 +283,7 @@ const sendReceiptOnWapp = (req,res) => {
                   "to": "91"+clientWhatsAppNumber,
                   "type": "template",
                   "template": {
-                    "name": "rtowithnumber",
+                    "name": "updated",
                     "language": {
                       "code": "en"
                     },
