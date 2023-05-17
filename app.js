@@ -45,17 +45,17 @@ app.use(bodyparser.json())
 
 // app.use('/events',events);
 
-app.use('/agentrouter',agentrouter);
-app.use('/stateCityrouter',stateCityrouter);
-app.use('/dealerrouter',dealerrouter);
-app.use('/vehicleRegistrationrouter',vehicleRegistrationrouter);
-app.use('/ddlVehiclePagerouter',ddlVehiclePagerouter);
-app.use('/mobileApprouter',mobileApprouter);
-app.use('/whatsApprouter',whatsApprouter);
+app.use('/api/agentrouter',agentrouter);
+app.use('/api/stateCityrouter',stateCityrouter);
+app.use('/api/dealerrouter',dealerrouter);
+app.use('/api/vehicleRegistrationrouter',vehicleRegistrationrouter);
+app.use('/api/ddlVehiclePagerouter',ddlVehiclePagerouter);
+app.use('/api/mobileApprouter',mobileApprouter);
+app.use('/api/whatsApprouter',whatsApprouter);
 
 app.use(notFound);
 app.use(erroHandler); 
 
 //Listen or Enviroment port or 5000
-httpsServer. listen (8443)
+// httpsServer. listen (8443)
 app.listen(port ,() => console.log(`Connecion suceesfull ${port}`)) 
