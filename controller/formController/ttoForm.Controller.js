@@ -5,7 +5,8 @@ const { Readable } =  require('stream');
 const pool = require("../../database");
 
 const fillPDFdata = async(data)=>{
-console.log(">>>>>",data[0].buyerStateCityPincode);
+
+  try{
   const details = {
     vehicleRegistrationNumber    : data[0].vehicleRegistrationNumber ? data[0].vehicleRegistrationNumber : '',
     vehicleMake                  : data[0].vehicleMake               ? data[0].vehicleMake               : '',
@@ -225,44 +226,56 @@ console.log(">>>>>",data[0].buyerStateCityPincode);
     console.log(">>>>><<<<",response.data.id);
       return response.data.id;
   }else{
-      return ("not Able To Upload");
-  }}
+      return response.status(404).send(error);
+  }
+  }catch(error){
+    throw new Error(error);
+  }
+}
 
 const genrateTTOform = async(req,res) => {
 
-            const vehicleRegistrationId = res.locals.id;
-            console.log("><><>>>>>>>",vehicleRegistrationId);
-            const sql_querry_getdetailsById = `SELECT UPPER(vehicleRegistrationNumber) AS vehicleRegistrationNumber,
-                                               RIGHT(vehicleChassisNumber,5) AS vehicleChassisNumber,
-                                               RIGHT(vehicleEngineNumber,5) AS vehicleEngineNumber, UPPER(vehicleMake) AS vehicleMake, UPPER(vehicleModel) AS vehicleModel,
-                                               UPPER(CONCAT(sellerFirstName," ",sellerMiddleName," ",sellerLastName)) AS sellerName, sellerAddress,
-                                               UPPER(CONCAT(buyerFirstName," ",buyerMiddleName," ",buyerLastName)) AS buyerName,
-                                               UPPER(CONCAT(buyerAddressLine1,", ",buyerAddressLine2,", ",buyerAddressLine3)) AS buyerAddress,
-                                               CONCAT(state_data.stateName,", ",city_data.cityName,"- ",buyerPincode) AS buyerStateCityPincode,
-                                               UPPER(rto_city_data.cityRTOName) AS serviceAuthority, (insurance_data.insuranceCompanyName) AS insuranceCompanyName, policyNumber, 
-                                               DATE_FORMAT(insuranceStartDate, '%d-%m-%Y') AS insuranceStartDate, DATE_FORMAT(insuranceEndDate, '%d-%m-%Y') AS insuranceEndDate
-                                               FROM vehicle_registration_details
-                                               INNER JOIN state_data ON state_data.stateId = vehicle_registration_details.buyerState
-                                               INNER JOIN city_data ON city_data.cityId = vehicle_registration_details.buyerCity
-                                               INNER JOIN rto_city_data ON rto_city_data.RTOcityId = vehicle_registration_details.serviceAuthority
-                                               LEFT JOIN insurance_data ON insurance_data.insuranceId = vehicle_registration_details.insuranceCompanyNameId
-                                               WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
-            pool.query(sql_querry_getdetailsById,(err,data)=>{
-              if(err) return res.status(404).send(err);
-              var temp;
-              fillPDFdata(data)
-              .then((rest)=>{
-                //  return res.send(rest)
-                 const pdfURL = `https://drive.google.com/uc?export=view&id=${rest}`;
-                 sql_add_PDF = `INSERT INTO tto_form_data (vehicleRegistrationId, pdfURL, pdfgoogleDriveId) 
-                                              VALUES ('${vehicleRegistrationId}','${pdfURL}','${rest}')`
-                 pool.query(sql_add_PDF,(err,data)=>{
-                   if(err) return res.status(404).send(err);;
-                   return res.status(200),
-                          res.json("Ok");
-                 })
-              });
-    })
+    try{
+      const vehicleRegistrationId = res.locals.id;
+      console.log("><><>>>>>>>",vehicleRegistrationId);
+      const sql_querry_getdetailsById = `SELECT UPPER(vehicleRegistrationNumber) AS vehicleRegistrationNumber,
+                                         RIGHT(vehicleChassisNumber,5) AS vehicleChassisNumber,
+                                         RIGHT(vehicleEngineNumber,5) AS vehicleEngineNumber, UPPER(vehicleMake) AS vehicleMake, UPPER(vehicleModel) AS vehicleModel,
+                                         UPPER(CONCAT(sellerFirstName," ",sellerMiddleName," ",sellerLastName)) AS sellerName, sellerAddress,
+                                         UPPER(CONCAT(buyerFirstName," ",buyerMiddleName," ",buyerLastName)) AS buyerName,
+                                         UPPER(CONCAT(buyerAddressLine1,", ",buyerAddressLine2,", ",buyerAddressLine3)) AS buyerAddress,
+                                         CONCAT(state_data.stateName,", ",city_data.cityName,"- ",buyerPincode) AS buyerStateCityPincode,
+                                         UPPER(rto_city_data.cityRTOName) AS serviceAuthority, (insurance_data.insuranceCompanyName) AS insuranceCompanyName, policyNumber, 
+                                         DATE_FORMAT(insuranceStartDate, '%d-%m-%Y') AS insuranceStartDate, DATE_FORMAT(insuranceEndDate, '%d-%m-%Y') AS insuranceEndDate
+                                         FROM vehicle_registration_details
+                                         INNER JOIN state_data ON state_data.stateId = vehicle_registration_details.buyerState
+                                         INNER JOIN city_data ON city_data.cityId = vehicle_registration_details.buyerCity
+                                         INNER JOIN rto_city_data ON rto_city_data.RTOcityId = vehicle_registration_details.serviceAuthority
+                                         LEFT JOIN insurance_data ON insurance_data.insuranceId = vehicle_registration_details.insuranceCompanyNameId
+                                         WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
+      pool.query(sql_querry_getdetailsById,(err,data)=>{
+        if(err) return res.status(404).send(err);
+        var temp;
+        fillPDFdata(data)
+        .then((rest)=>{
+          //  return res.send(rest)
+           const pdfURL = `https://drive.google.com/uc?export=view&id=${rest}`;
+           sql_add_PDF = `INSERT INTO tto_form_data (vehicleRegistrationId, pdfURL, pdfgoogleDriveId) 
+                                        VALUES ('${vehicleRegistrationId}','${pdfURL}','${rest}')`
+           pool.query(sql_add_PDF,(err,data)=>{
+             if(err) return res.status(404).send(err);;
+             return res.status(200),
+                    res.json("Ok");
+           })
+        })
+        .catch((err)=>{
+          return res.status(404).send("Please Fill All Fields")
+        })
+})
+    }catch(error){
+      throw new Error(error);
+    }
+            
 } 
 
 module.exports = { genrateTTOform }; 

@@ -936,7 +936,7 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
                 comment                              :   req.body.comment ? req.body.comment : null,
                 creationDate                         :   new Date().toString().slice(4,15),              
             }   
-            if(!data.vehicleRegistrationNumber || !data.vehicleChassisNumber || !data.vehicleEngineNumber ||  
+            if(!data.vehicleRegistrationNumber || !data.vehicleChassisNumber || !data.vehicleEngineNumber || !data.vehicleMake || !data.vehicleModel || !data.vehicleRegistrationDate ||  
                !data.sellerFirstName || !data.sellerMiddleName || !data.sellerLastName || 
                !data.sellerAddress || !data.clientWhatsAppNumber || !data.serviceAuthority || !data.vehicleWorkStatus){
                 res.status(401);
@@ -962,6 +962,7 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
                                               '${data.serviceAuthority}',NULLIF('${data.dealerId}','100'),NULLIF('${data.privateCustomerName}','null'),
                                               NULLIF('${data.insuranceType}','null'),${data.insuranceCompanyNameId},NULLIF('${data.policyNumber}','null'), STR_TO_DATE(NULLIF('${data.insuranceStartDate}','Oct 10 1001'),'%b %d %Y'), STR_TO_DATE(NULLIF('${data.insuranceEndDate}','Oct 10 1001'),'%b %d %Y'),
                                               '${data.vehicleWorkStatus}',NULLIF('${data.comment}','null'), STR_TO_DATE('${data.creationDate}','%b %d %Y'))`;
+                                              console.log("addddd Query",sql_queries_adddetails);
             pool.query(sql_queries_adddetails,(err,data) =>{
                 if(err) return res.status(404).send(err);
                 // return res.json(data);
@@ -1040,7 +1041,7 @@ const removeVehicleRegistrationDetails = async(req,res)=>{
 
 const fillUpdateDetailForVehicle = async(req,res)=>{
     const vehicleRegistrationId = req.query.vehicleRegistrationId;
-    get_editdetails = `SELECT vehicleRegistrationNumber, vehicleChassisNumber,vehicleEngineNumber,vehicleClass,vehicleCategory,vehicleMake,vehicleModel,vehicleRegistrationDate,sellerFirstName,sellerMiddleName,sellerLastName,sellerAddress,buyerFirstName,buyerMiddleName,buyerLastName,buyerAddressLine1,buyerAddressLine2,buyerAddressLine3,buyerState,buyerCity,buyerPincode,clientWhatsAppNumber,serviceAuthority,dealerId,privateCustomerName,insuranceType,insuranceCompanyNameId,policyNumber,insuranceStartDate,insuranceEndDate, comment FROM vehicle_registration_details
+    get_editdetails = `SELECT vehicleRegistrationNumber, vehicleChassisNumber,vehicleEngineNumber,vehicleClass,vehicleCategory,vehicleMake,vehicleModel,vehicleRegistrationDate,sellerFirstName,sellerMiddleName,sellerLastName,sellerAddress,buyerFirstName,buyerMiddleName,buyerLastName,buyerAddressLine1,buyerAddressLine2,buyerAddressLine3,buyerState,buyerCity,buyerPincode,clientWhatsAppNumber,serviceAuthority,COALESCE(dealerId, 100) AS dealerId,privateCustomerName,insuranceType,insuranceCompanyNameId,policyNumber,insuranceStartDate,insuranceEndDate, comment FROM vehicle_registration_details
                        WHERE vehicleRegistrationId = '${vehicleRegistrationId}';
                        SELECT workId FROM work_list WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
     pool.query(get_editdetails,(err,data)=>{
@@ -1165,11 +1166,11 @@ const updateVehicleRegistrationDetails = async(req,res,next) =>{
                 vehicleRegistrationNumber   :   req.body.vehicleRegistrationNumber,        
                 vehicleChassisNumber        :   req.body.vehicleChassisNumber,        
                 vehicleEngineNumber         :   req.body.vehicleEngineNumber,         
-                vehicleClass                :   req.body.vehicleClass,                
-                vehicleCategory             :   req.body.vehicleCategory,             
+                vehicleClass                :   req.body.vehicleClass ? req.body.vehicleClass : null,               
+                vehicleCategory             :   req.body.vehicleCategory ? req.body.vehicleCategory : null,                         
                 vehicleMake                 :   req.body.vehicleMake,                 
                 vehicleModel                :   req.body.vehicleModel,                
-                vehicleRegistrationDate     :   new Date(req.body.vehicleRegistrationDate?req.body.vehicleRegistrationDate:"01/01/2001").toString().slice(4,15),
+                vehicleRegistrationDate     :   new Date(req.body.vehicleRegistrationDate?req.body.vehicleRegistrationDate:"10/10/1001").toString().slice(4,15),
                 currentState                :   getCurrentState(),
                 nextState                   :   getNextState(),
                 rrf                         :   isRRF() ? 1 : 0,
@@ -1179,22 +1180,22 @@ const updateVehicleRegistrationDetails = async(req,res,next) =>{
                 sellerMiddleName            :   req.body.sellerMiddleName,            
                 sellerLastName              :   req.body.sellerLastName,              
                 sellerAddress               :   req.body.sellerAddress,               
-                buyerFirstName              :   req.body.buyerFirstName,                 
-                buyerMiddleName             :   req.body.buyerMiddleName,             
-                buyerLastName               :   req.body.buyerLastName,                   
-                buyerAddressLine1           :   req.body.buyerAddressLine1,           
-                buyerAddressLine2           :   req.body.buyerAddressLine2,          
-                buyerAddressLine3           :   req.body.buyerAddressLine3,                   
-                buyerState                  :   req.body.buyerState,                  
-                buyerCity                   :   req.body.buyerCity,                   
-                buyerPincode                :   req.body.buyerPincode,                
+                buyerFirstName              :   req.body.buyerFirstName ? req.body.buyerFirstName : null,                 
+                buyerMiddleName             :   req.body.buyerMiddleName ? req.body.buyerMiddleName : null,           
+                buyerLastName               :   req.body.buyerLastName ? req.body.buyerLastName : null,               
+                buyerAddressLine1           :   req.body.buyerAddressLine1 ? req.body.buyerAddressLine1 : null,           
+                buyerAddressLine2           :   req.body.buyerAddressLine2 ? req.body.buyerAddressLine2 : null,          
+                buyerAddressLine3           :   req.body.buyerAddressLine3 ? req.body.buyerAddressLine3 : null,                   
+                buyerState                  :   req.body.buyerState ? req.body.buyerState : null,                  
+                buyerCity                   :   req.body.buyerCity ? req.body.buyerCity : null,                   
+                buyerPincode                :   req.body.buyerPincode ? req.body.buyerPincode : null,                               
                 clientWhatsAppNumber        :   req.body.clientWhatsAppNumber,        
                 serviceAuthority            :   req.body.serviceAuthority,            
-                dealerId                    :   req.body.dealerId, 
-                privateCustomerName         :   req.body.privateCustomerName,                    
-                insuranceType               :   req.body.insuranceType,               
-                insuranceCompanyNameId      :   req.body.insuranceCompanyNameId,      
-                policyNumber                :   req.body.policyNumber,                
+                dealerId                    :   req.body.dealerId ? req.body.dealerId : 100,
+                privateCustomerName         :   req.body.privateCustomerName ? req.body.privateCustomerName : null,                    
+                insuranceType               :   req.body.insuranceType ? req.body.insuranceType : null,       
+                insuranceCompanyNameId      :   req.body.insuranceCompanyNameId ? req.body.insuranceCompanyNameId : null,
+                policyNumber                :   req.body.policyNumber ? req.body.policyNumber : null,                    
                 insuranceStartDate          :   new Date(req.body.insuranceStartDate?req.body.insuranceStartDate:"10/10/1001").toString().slice(4,15),          
                 insuranceEndDate            :   new Date(req.body.insuranceEndDate?req.body.insuranceEndDate:"10/10/1001").toString().slice(4,15),            
                 comment                     :   req.body.comment                  
@@ -1206,7 +1207,7 @@ const updateVehicleRegistrationDetails = async(req,res,next) =>{
                                                                                    vehicleCategory = ${data.vehicleCategory},          
                                                                                    vehicleMake = '${data.vehicleMake}',              
                                                                                    vehicleModel = '${data.vehicleModel}',             
-                                                                                   vehicleRegistrationDate = STR_TO_DATE('${data.vehicleRegistrationDate}','%b %d %Y'),
+                                                                                   vehicleRegistrationDate = STR_TO_DATE(NULLIF('${data.vehicleRegistrationDate}','Oct 10 1001'),'%b %d %Y'),
                                                                                    currentState = ${data.currentState},
                                                                                    nextState = ${data.nextState},
                                                                                    RRF = ${data.rrf},
@@ -1216,22 +1217,22 @@ const updateVehicleRegistrationDetails = async(req,res,next) =>{
                                                                                    sellerMiddleName = '${data.sellerMiddleName}',         
                                                                                    sellerLastName = '${data.sellerLastName}',           
                                                                                    sellerAddress = '${data.sellerAddress}',            
-                                                                                   buyerFirstName = '${data.buyerFirstName}',           
-                                                                                   buyerMiddleName = '${data.buyerMiddleName}',          
-                                                                                   buyerLastName = '${data.buyerLastName}',            
-                                                                                   buyerAddressLine1 = '${data.buyerAddressLine1}',        
-                                                                                   buyerAddressLine2 = '${data.buyerAddressLine2}',        
-                                                                                   buyerAddressLine3 = '${data.buyerAddressLine3}',        
+                                                                                   buyerFirstName = NULLIF('${data.buyerFirstName}','null'),
+                                                                                   buyerMiddleName = NULLIF('${data.buyerMiddleName}','null'),
+                                                                                   buyerLastName = NULLIF('${data.buyerLastName}','null'),
+                                                                                   buyerAddressLine1 = NULLIF('${data.buyerAddressLine1}','null'),
+                                                                                   buyerAddressLine2 = NULLIF('${data.buyerAddressLine2}','null'),
+                                                                                   buyerAddressLine3 = NULLIF('${data.buyerAddressLine3}','null'),          
                                                                                    buyerState = ${data.buyerState},               
                                                                                    buyerCity = ${data.buyerCity},                
                                                                                    buyerPincode = ${data.buyerPincode},             
                                                                                    clientWhatsAppNumber = '${data.clientWhatsAppNumber}',     
                                                                                    serviceAuthority = ${data.serviceAuthority},         
-                                                                                   dealerId = '${data.dealerId}',
-                                                                                   privateCustomerName = '${data.privateCustomerName}',                 
-                                                                                   insuranceType = '${data.insuranceType}',            
-                                                                                   insuranceCompanyNameId = ${data.insuranceCompanyNameId},   
-                                                                                   policyNumber = '${data.policyNumber}',             
+                                                                                   dealerId = NULLIF('${data.dealerId}','100'),
+                                                                                   privateCustomerName = NULLIF('${data.privateCustomerName}','null'),
+                                                                                   insuranceType = NULLIF('${data.insuranceType}','null'),
+                                                                                   insuranceCompanyNameId = ${data.insuranceCompanyNameId},
+                                                                                   policyNumber = NULLIF('${data.policyNumber}','null'),             
                                                                                    insuranceStartDate = STR_TO_DATE(NULLIF('${data.insuranceStartDate}','Oct 10 1001'),'%b %d %Y'),       
                                                                                    insuranceEndDate = STR_TO_DATE(NULLIF('${data.insuranceEndDate}','Oct 10 1001'),'%b %d %Y'),
                                                                                    comment = '${data.comment}'

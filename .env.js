@@ -6,9 +6,9 @@ const production = {
 const development = {
     ...process.env,
     NODE_ENV: process.env.NODE_ENV || 'development',
-    Meta_WA_SenderPhoneNumberId: '117691311304482',
-    Meta_WA_wabaId: '105371802550256',
-    Meta_WA_VerifyToken: 'jay',
+    Meta_WA_SenderPhoneNumberId: 'Your Number',
+    Meta_WA_wabaId: 'Your Id',
+    Meta_WA_VerifyToken: 'Your Jay',
 };
 
 const fallback = {

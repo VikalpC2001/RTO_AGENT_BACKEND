@@ -305,15 +305,15 @@ const sendReceiptOnWapp = (req,res) => {
                         "parameters":[
                           {
                             "type":"text",
-                            "text":"gj03er2323"
+                            "text":vehicleNumber
                           },
                           {
                             "type":"text",
-                            "text":"honda"
+                            "text":vehicleMake
                           },
                           {
                             "type":"text",
-                            "text":"activa"
+                            "text":vehicleModel
                           },
                         ]
                       }
