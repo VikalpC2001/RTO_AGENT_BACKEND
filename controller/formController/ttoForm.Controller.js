@@ -345,7 +345,7 @@ const fillPDFdata = async(data)=>{
     console.log(">>>>><<<<",response.data.id);
       return response.data.id;
   }else{
-      return response.status(404).send(error);
+      throw new Error("Error");
   }
   }catch(error){
     throw new Error(error);
@@ -393,7 +393,7 @@ const genrateTTOform = async(req,res) => {
            })
         })
         .catch((err)=>{
-          return res.status(404).send("Please Fill All Fields")
+          return res.status(404).send("Please Fill All TO Fields")
         })
 })
     }catch(error){

@@ -945,7 +945,7 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
             }   
             if(!data.vehicleRegistrationNumber || !data.vehicleChassisNumber || !data.vehicleEngineNumber || !data.vehicleMake || !data.vehicleModel || !data.vehicleRegistrationDate ||  
                !data.sellerFirstName || !data.sellerMiddleName || !data.sellerLastName || 
-               !data.sellerAddress || !data.clientWhatsAppNumber || !data.serviceAuthority || !data.vehicleWorkStatus){
+               !data.sellerAddress || !data.clientWhatsAppNumber || !data.serviceAuthority){
                 res.status(401);
                 res.send("Please Fill all the feilds")
             }else{
