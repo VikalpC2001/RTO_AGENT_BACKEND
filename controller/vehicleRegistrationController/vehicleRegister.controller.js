@@ -438,6 +438,9 @@ const getVehicleRegistrationDetailsById = async(req,res) =>{
                                              INNER JOIN city_data ON city_data.cityId = vehicle_registration_details.buyerCity
                                              INNER JOIN state_data ON state_data.stateId = vehicle_registration_details.buyerState
                                              WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}';
+                                      SELECT puccNumber AS "PUCC Number", DATE_FORMAT(puccStartDate, '%d-%M-%Y') AS "PUCC from", DATE_FORMAT(puccEndDate, '%d-%M-%Y') AS "PUCC upto"
+                                             FROM vehicle_registration_details
+                                             WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}';       
                                       SELECT insuranceType AS "Insurance Type", (insurance_data.insuranceCompanyName) AS "Insurance Company", policyNumber AS "Policy Number", DATE_FORMAT(insuranceStartDate, '%d-%M-%Y') AS "Insurance from", DATE_FORMAT(insuranceEndDate, '%d-%M-%Y') AS "Insurance upto"
                                              FROM vehicle_registration_details
                                              LEFT JOIN insurance_data ON insurance_data.insuranceId = vehicle_registration_details.insuranceCompanyNameId
@@ -459,11 +462,12 @@ const getVehicleRegistrationDetailsById = async(req,res) =>{
                 'Vehicle Details'       : data[0][0],
                 'Owner Details'         : data[1][0],
                 'Buyer Details'         : data[2][0],
-                'Insurance Details'     : data[3][0],
-                'Status'                : data[4][0],
-                'Customer Details'      : data[5][0],
-                'TTO Form Link'         : data[6][0],
-                'Receipt Id'            : data[7][0]    
+                'PUCC Details'          : data[3][0],
+                'Insurance Details'     : data[4][0],
+                'Status'                : data[5][0],
+                'Customer Details'      : data[6][0],
+                'TTO Form Link'         : data[7][0],
+                'Receipt Id'            : data[8][0]    
              }
             console.log(">>>>",data)
             return res.json(resData);
@@ -926,7 +930,10 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
                 clientWhatsAppNumber                 :   req.body.clientWhatsAppNumber,        
                 serviceAuthority                     :   req.body.serviceAuthority,            
                 dealerId                             :   req.body.dealerId ? req.body.dealerId : 100,
-                privateCustomerName                  :   req.body.privateCustomerName ? req.body.privateCustomerName : null,                    
+                privateCustomerName                  :   req.body.privateCustomerName ? req.body.privateCustomerName : null,
+                puccNumber                           :   req.body.puccNumber ? req.body.puccNumber : null,
+                puccStartDate                        :   new Date(req.body.puccStartDate ? req.body.puccStartDate : "10/10/1001").toString().slice(4,15),          
+                puccEndDate                          :   new Date(req.body.puccEndDate ? req.body.puccEndDate : "10/10/1001").toString().slice(4,15),                               
                 insuranceType                        :   req.body.insuranceType ? req.body.insuranceType : null,       
                 insuranceCompanyNameId               :   req.body.insuranceCompanyNameId ? req.body.insuranceCompanyNameId : null,
                 policyNumber                         :   req.body.policyNumber ? req.body.policyNumber : null,                
@@ -949,7 +956,8 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
                                                                                 buyerFirstName, buyerMiddleName, buyerLastName,
                                                                                 buyerAddressLine1, buyerAddressLine2, buyerAddressLine3, 
                                                                                 buyerState, buyerCity, buyerPincode, clientWhatsAppNumber, 
-                                                                                serviceAuthority, dealerId, privateCustomerName, 
+                                                                                serviceAuthority, dealerId, privateCustomerName,
+                                                                                puccNumber, puccStartDate, puccEndDate, 
                                                                                 insuranceType, insuranceCompanyNameId, policyNumber, insuranceStartDate, insuranceEndDate, 
                                                                                 vehicleWorkStatus, comment, vehicleRegistrationCreationDate)
                                       VALUES ('${id}','${agentId}','${data.vehicleRegistrationNumber}','${data.vehicleChassisNumber}','${data.vehicleEngineNumber}',
@@ -960,6 +968,7 @@ const addVehicleRegistrationDetails = async(req,res,next) =>{
                                               NULLIF('${data.buyerAddressLine1}','null'),NULLIF('${data.buyerAddressLine2}','null'),NULLIF('${data.buyerAddressLine3}','null'),
                                                ${data.buyerState},${data.buyerCity},${data.buyerPincode},'${data.clientWhatsAppNumber}',
                                               '${data.serviceAuthority}',NULLIF('${data.dealerId}','100'),NULLIF('${data.privateCustomerName}','null'),
+                                              NULLIF('${data.puccNumber}','null'), STR_TO_DATE(NULLIF('${data.puccStartDate}','Oct 10 1001'),'%b %d %Y'), STR_TO_DATE(NULLIF('${data.puccEndDate}','Oct 10 1001'),'%b %d %Y'),
                                               NULLIF('${data.insuranceType}','null'),${data.insuranceCompanyNameId},NULLIF('${data.policyNumber}','null'), STR_TO_DATE(NULLIF('${data.insuranceStartDate}','Oct 10 1001'),'%b %d %Y'), STR_TO_DATE(NULLIF('${data.insuranceEndDate}','Oct 10 1001'),'%b %d %Y'),
                                               '${data.vehicleWorkStatus}',NULLIF('${data.comment}','null'), STR_TO_DATE('${data.creationDate}','%b %d %Y'))`;
                                               console.log("addddd Query",sql_queries_adddetails);
@@ -1041,7 +1050,7 @@ const removeVehicleRegistrationDetails = async(req,res)=>{
 
 const fillUpdateDetailForVehicle = async(req,res)=>{
     const vehicleRegistrationId = req.query.vehicleRegistrationId;
-    get_editdetails = `SELECT vehicleRegistrationNumber, vehicleChassisNumber,vehicleEngineNumber,vehicleClass,vehicleCategory,vehicleMake,vehicleModel,vehicleRegistrationDate,sellerFirstName,sellerMiddleName,sellerLastName,sellerAddress,buyerFirstName,buyerMiddleName,buyerLastName,buyerAddressLine1,buyerAddressLine2,buyerAddressLine3,buyerState,buyerCity,buyerPincode,clientWhatsAppNumber,serviceAuthority,COALESCE(dealerId, 100) AS dealerId,privateCustomerName,insuranceType,insuranceCompanyNameId,policyNumber,insuranceStartDate,insuranceEndDate, comment FROM vehicle_registration_details
+    get_editdetails = `SELECT vehicleRegistrationNumber, vehicleChassisNumber,vehicleEngineNumber,vehicleClass,vehicleCategory,vehicleMake,vehicleModel,vehicleRegistrationDate,sellerFirstName,sellerMiddleName,sellerLastName,sellerAddress,buyerFirstName,buyerMiddleName,buyerLastName,buyerAddressLine1,buyerAddressLine2,buyerAddressLine3,buyerState,buyerCity,buyerPincode,clientWhatsAppNumber,serviceAuthority,COALESCE(dealerId, 100) AS dealerId,privateCustomerName,puccNumber,puccStartDate,puccEndDate,insuranceType,insuranceCompanyNameId,policyNumber,insuranceStartDate,insuranceEndDate, comment FROM vehicle_registration_details
                        WHERE vehicleRegistrationId = '${vehicleRegistrationId}';
                        SELECT workId FROM work_list WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
     pool.query(get_editdetails,(err,data)=>{
@@ -1192,7 +1201,10 @@ const updateVehicleRegistrationDetails = async(req,res,next) =>{
                 clientWhatsAppNumber        :   req.body.clientWhatsAppNumber,        
                 serviceAuthority            :   req.body.serviceAuthority,            
                 dealerId                    :   req.body.dealerId ? req.body.dealerId : 100,
-                privateCustomerName         :   req.body.privateCustomerName ? req.body.privateCustomerName : null,                    
+                privateCustomerName         :   req.body.privateCustomerName ? req.body.privateCustomerName : null,
+                puccNumber                  :   req.body.puccNumber ? req.body.puccNumber : null,
+                puccStartDate               :   new Date(req.body.puccStartDate ? req.body.puccStartDate : "10/10/1001").toString().slice(4,15),          
+                puccEndDate                 :   new Date(req.body.puccEndDate ? req.body.puccEndDate : "10/10/1001").toString().slice(4,15),                                                   
                 insuranceType               :   req.body.insuranceType ? req.body.insuranceType : null,       
                 insuranceCompanyNameId      :   req.body.insuranceCompanyNameId ? req.body.insuranceCompanyNameId : null,
                 policyNumber                :   req.body.policyNumber ? req.body.policyNumber : null,                    
@@ -1230,6 +1242,9 @@ const updateVehicleRegistrationDetails = async(req,res,next) =>{
                                                                                    serviceAuthority = ${data.serviceAuthority},         
                                                                                    dealerId = NULLIF('${data.dealerId}','100'),
                                                                                    privateCustomerName = NULLIF('${data.privateCustomerName}','null'),
+                                                                                   puccNumber = NULLIF('${data.puccNumber}','null'),
+                                                                                   puccStartDate = STR_TO_DATE(NULLIF('${data.puccStartDate}','Oct 10 1001'),'%b %d %Y'),       
+                                                                                   puccEndDate = STR_TO_DATE(NULLIF('${data.puccEndDate}','Oct 10 1001'),'%b %d %Y'),
                                                                                    insuranceType = NULLIF('${data.insuranceType}','null'),
                                                                                    insuranceCompanyNameId = ${data.insuranceCompanyNameId},
                                                                                    policyNumber = NULLIF('${data.policyNumber}','null'),             

@@ -17,12 +17,20 @@ const fillPDFdata = async(data)=>{
     sellerAddress                : data[0].sellerAddress             ? data[0].sellerAddress             : '',
     buyerName                    : data[0].buyerName                 ? data[0].buyerName                 : '',
     buyerAddress                 : data[0].buyerAddress              ? data[0].buyerAddress              : '',
+    buyerAddressLine1            : data[0].buyerAddressLine1         ? data[0].buyerAddressLine1         : '',
+    buyerAddressline2and3        : data[0].buyerAddressline2and3     ? data[0].buyerAddressline2and3     : '', 
     buyerStateCityPincode        : data[0].buyerStateCityPincode     ? data[0].buyerStateCityPincode     : '',
     serviceAuthority             : data[0].serviceAuthority          ? data[0].serviceAuthority          : '',
     insuranceCompanyName         : data[0].insuranceCompanyName      ? data[0].insuranceCompanyName      : '',
     policyNumber                 : data[0].policyNumber              ? data[0].policyNumber              : '',
     insuranceStartDate           : data[0].insuranceStartDate        ? data[0].insuranceStartDate        : '',
-    insuranceEndDate             : data[0].insuranceEndDate          ? data[0].insuranceEndDate          : ''
+    insuranceEndDate             : data[0].insuranceEndDate          ? data[0].insuranceEndDate          : '',
+    clientWhatsAppNumber         : data[0].clientWhatsAppNumber      ? data[0].clientWhatsAppNumber      : '',
+    puccNumber                   : data[0].puccNumber                ? data[0].puccNumber                : '',
+    puccStartDate                : data[0].puccStartDate             ? data[0].puccStartDate             : '',
+    puccEndDate                  : data[0].puccEndDate               ? data[0].puccEndDate               : '',
+    workType                     : data[0].workType                  ? data[0].workType                  : '',
+    insuranceCompanyShortName    : data[0].insuranceCompanyName.split(' ').slice(0,2).join(' ') ? data[0].insuranceCompanyName.split(' ').slice(0,2).join(' ') : ''   
   }
 
   const authenticateGoogle = () => {
@@ -33,10 +41,11 @@ const fillPDFdata = async(data)=>{
     return auth;
   };
 
-  const document = await PDFDocument.load(readFileSync(process.env.TTO_URL));
+  const document = await PDFDocument.load(readFileSync(process.env.FORM_URL));
 
   // const firstPage = doc.addPage([612.00, 1008.00]);
   const firstPage = document.getPage(0);
+  const secondPage = document.getPage(1);
   firstPage.moveTo(105, 530);
   firstPage.drawText(details.buyerName, {
     x: 90,
@@ -201,6 +210,116 @@ const fillPDFdata = async(data)=>{
     y: 305,
     size: 10,
   })
+
+  secondPage.moveTo(72, 330);
+  secondPage.drawText(details.vehicleRegistrationNumber, {
+    x: 120,
+    y: 712,
+    size: 12
+  });
+
+  secondPage.drawText(details.clientWhatsAppNumber, {
+    x: 420,
+    y: 712,
+    size: 12
+  });
+
+  secondPage.drawText(details.workType, {
+    x: 220,
+    y: 687,
+    size: 12
+  });
+
+  secondPage.drawText(details.buyerName, {
+    x: 160,
+    y: 663,
+    size: 12
+  });
+
+  secondPage.drawText(details.buyerAddressLine1, {
+    x: 260,
+    y: 637,
+    size: 12
+  });
+
+  secondPage.drawText(details.buyerAddressline2and3, {
+    x: 70,
+    y: 613,
+    size: 12
+  });
+
+  secondPage.drawText(details.buyerStateCityPincode, {
+    x: 345,
+    y: 599,
+    size: 12
+  });
+
+  secondPage.drawText(details.workType, {
+    x: 115,
+    y: 465,
+    size: 12,
+  });
+
+  secondPage.drawText(details.vehicleRegistrationNumber, {
+    x: 120,
+    y: 440,
+    size: 12
+  });
+
+  secondPage.drawText(details.insuranceCompanyShortName, {
+    x: 213,
+    y: 415,
+    size: 11
+  });
+
+  secondPage.drawText(details.insuranceEndDate, {
+    x: 380,
+    y: 415,
+    size: 10
+  });
+
+  secondPage.drawText(details.policyNumber, {
+    x: 120,
+    y: 390,
+    size: 10
+  });
+
+  secondPage.drawText(details.puccNumber, {
+    x: 190,
+    y: 366,
+    size: 10
+  });
+
+  secondPage.drawText(details.puccStartDate, {
+    x: 284,
+    y: 366,
+    size: 10
+  });
+
+  secondPage.drawText(details.puccEndDate, {
+    x: 380,
+    y: 366,
+    size: 10
+  });
+
+  secondPage.drawText("AADHAR CARD", {
+    x: 180,
+    y: 293,
+    size: 12
+  });
+
+  secondPage.drawText("29 / 30", {
+    x: 250,
+    y: 219,
+    size: 12
+  });
+
+  secondPage.drawText(details.workType, {
+    x: 150,
+    y: 95,
+    size: 12
+  });
+
       
   const auth = authenticateGoogle();    
   const fileMetadata = {
@@ -241,18 +360,23 @@ const genrateTTOform = async(req,res) => {
       const sql_querry_getdetailsById = `SELECT UPPER(vehicleRegistrationNumber) AS vehicleRegistrationNumber,
                                          RIGHT(vehicleChassisNumber,5) AS vehicleChassisNumber,
                                          RIGHT(vehicleEngineNumber,5) AS vehicleEngineNumber, UPPER(vehicleMake) AS vehicleMake, UPPER(vehicleModel) AS vehicleModel,
+                                         GROUP_CONCAT(rto_work_data.shortForm SEPARATOR ' + ') as workType,
                                          UPPER(CONCAT(sellerFirstName," ",sellerMiddleName," ",sellerLastName)) AS sellerName, sellerAddress,
                                          UPPER(CONCAT(buyerFirstName," ",buyerMiddleName," ",buyerLastName)) AS buyerName,
                                          UPPER(CONCAT(buyerAddressLine1,", ",buyerAddressLine2,", ",buyerAddressLine3)) AS buyerAddress,
+                                         UPPER(buyerAddressLine1) AS buyerAddressLine1, UPPER(CONCAT(buyerAddressLine2,", ",buyerAddressLine3)) AS buyerAddressline2and3,
                                          CONCAT(state_data.stateName,", ",city_data.cityName,"- ",buyerPincode) AS buyerStateCityPincode,
+                                         RIGHT(puccNumber,5) AS puccNumber, DATE_FORMAT(puccStartDate, '%d-%m-%Y') AS puccStartDate, DATE_FORMAT(puccEndDate, '%d-%m-%Y') AS puccEndDate, 
                                          UPPER(rto_city_data.cityRTOName) AS serviceAuthority, (insurance_data.insuranceCompanyName) AS insuranceCompanyName, policyNumber, 
-                                         DATE_FORMAT(insuranceStartDate, '%d-%m-%Y') AS insuranceStartDate, DATE_FORMAT(insuranceEndDate, '%d-%m-%Y') AS insuranceEndDate
+                                         DATE_FORMAT(insuranceStartDate, '%d-%m-%Y') AS insuranceStartDate, DATE_FORMAT(insuranceEndDate, '%d-%m-%Y') AS insuranceEndDate, clientWhatsAppNumber
                                          FROM vehicle_registration_details
+                                         INNER JOIN work_list ON work_list.vehicleRegistrationId = vehicle_registration_details.vehicleRegistrationId
+                                         INNER JOIN rto_work_data ON rto_work_data.workId = work_list.workId
                                          INNER JOIN state_data ON state_data.stateId = vehicle_registration_details.buyerState
                                          INNER JOIN city_data ON city_data.cityId = vehicle_registration_details.buyerCity
                                          INNER JOIN rto_city_data ON rto_city_data.RTOcityId = vehicle_registration_details.serviceAuthority
                                          LEFT JOIN insurance_data ON insurance_data.insuranceId = vehicle_registration_details.insuranceCompanyNameId
-                                         WHERE vehicleRegistrationId = '${vehicleRegistrationId}'`;
+                                         WHERE vehicle_registration_details.vehicleRegistrationId = '${vehicleRegistrationId}' GROUP BY work_list.vehicleRegistrationId`;
       pool.query(sql_querry_getdetailsById,(err,data)=>{
         if(err) return res.status(404).send(err);
         var temp;

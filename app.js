@@ -16,19 +16,6 @@ const fs = require('fs');
 const app = express()
 const port = process.env.PORT
 
-const key = fs.readFileSync('./private.key');
-const cert = fs.readFileSync('./103.177.194.54.chained+root.crt');
-
-// app.get('/.well-known/pki-validation/24B5BA6E0DD80C41F108F7E409271914.txt',(req,res)=>{
-//   res.sendFile('/Users/vikalp/Desktop/RTO_AGENT_BACKEND/24B5BA6E0DD80C41F108F7E409271914.txt')
-// })
-
-const cred = {
-  key,
-  cert
-}
-
-const httpsServer = https. createServer (cred, app)
 
 app.use(cors());
 
@@ -56,6 +43,4 @@ app.use('/api/whatsApprouter',whatsApprouter);
 app.use(notFound);
 app.use(erroHandler); 
 
-//Listen or Enviroment port or 5000
-// httpsServer. listen (8443)
 app.listen(port ,() => console.log(`Connecion suceesfull ${port}`)) 
