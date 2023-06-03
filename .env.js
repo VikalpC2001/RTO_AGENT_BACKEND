@@ -8,7 +8,7 @@ const development = {
     NODE_ENV: process.env.NODE_ENV || 'development',
     Meta_WA_SenderPhoneNumberId: 'Your Number',
     Meta_WA_wabaId: 'Your Id',
-    Meta_WA_VerifyToken: 'Your Jay',
+    Meta_WA_VerifyToken: 'Your token',
 };
 
 const fallback = {
