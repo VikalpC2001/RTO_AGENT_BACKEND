@@ -121,35 +121,35 @@ const getBookbyDealerId = async (req, res) => {
             dealerId: req.query.dealerId,
             apiNumber: req.query.apiNumber
         }
-        if (req.query.dealerId && req.query.apiNumber === '1') {
+        if (req.query.dealerId && req.query.apiNumber === '4') {
 
             sql_queries_getdetailsByid = `SELECT vehicleRegistrationId, UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, COALESCE(dealer_details.dealerDisplayName,privateCustomerName) AS "Dealer/Customer" FROM vehicle_registration_details
                                           LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId 
                                           WHERE vehicle_registration_details.dealerId = '${data.dealerId}' AND vehicle_registration_details.vehicleRegistrationCreationDate BETWEEN STR_TO_DATE('${firstDay}','%b %d %Y') AND STR_TO_DATE('${lastDay}','%b %d %Y')
                                           ORDER BY RIGHT(vehicleRegistrationNumber,4)`; // LastMonthBooksOfDealer
 
-        } else if (req.query.dealerId && req.query.apiNumber === '2') {
+        } else if (req.query.dealerId && req.query.apiNumber === '5') {
 
             sql_queries_getdetailsByid = `SELECT vehicleRegistrationId, UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, COALESCE(dealer_details.dealerDisplayName,privateCustomerName) AS "Dealer/Customer" FROM vehicle_registration_details
                                           LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId 
                                           WHERE vehicle_registration_details.dealerId = '${data.dealerId}' AND vehicle_registration_details.vehicleRegistrationCreationDate = (SELECT MAX(vehicleRegistrationCreationDate) FROM vehicle_registration_details WHERE vehicle_registration_details.dealerId = '${data.dealerId}')
                                           ORDER BY RIGHT(vehicleRegistrationNumber,4)`; // LastUpdatedBooksOfDealer
 
-        } else if (req.query.dealerId && req.query.apiNumber === '3') {
+        } else if (req.query.dealerId && req.query.apiNumber === '1') {
 
             sql_queries_getdetailsByid = `SELECT vehicleRegistrationId, UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, COALESCE(dealer_details.dealerDisplayName,privateCustomerName) AS "Dealer/Customer" FROM vehicle_registration_details
                                           LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId 
                                           WHERE vehicle_registration_details.dealerId = '${data.dealerId}' AND vehicle_registration_details.vehicleWorkStatus = "PENDING"
                                           ORDER BY RIGHT(vehicleRegistrationNumber,4)`; // PendingBooksOfDealer
 
-        } else if (req.query.dealerId && req.query.apiNumber === '4') {
+        } else if (req.query.dealerId && req.query.apiNumber === '2') {
 
             sql_queries_getdetailsByid = `SELECT vehicleRegistrationId, UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, COALESCE(dealer_details.dealerDisplayName,privateCustomerName) AS "Dealer/Customer" FROM vehicle_registration_details
                                           LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId 
                                           WHERE vehicle_registration_details.dealerId = '${data.dealerId}' AND vehicle_registration_details.vehicleWorkStatus = "APPOINTMENT"
                                           ORDER BY RIGHT(vehicleRegistrationNumber,4)`; // AppointmentBooksOfDealer
 
-        } else if (req.query.dealerId && req.query.apiNumber === '5') {
+        } else if (req.query.dealerId && req.query.apiNumber === '3') {
 
             sql_queries_getdetailsByid = `SELECT vehicleRegistrationId, UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, COALESCE(dealer_details.dealerDisplayName,privateCustomerName) AS "Dealer/Customer" FROM vehicle_registration_details
                                           LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId 
@@ -212,12 +212,12 @@ const getInsuranceExpiredBookList = async (req, res) => {
             }
             if (req.query.apiNumber === '1') {
 
-                sql_insuranceExpired_getdetails = `SELECT vehicleRegistrationId ,vehicleRegistrationNumber, COALESCE(CONCAT(buyerFirstName, ' ', buyerLastname), CONCAT(sellerFirstName, ' ', sellerLastName)) AS Name, clientWhatsAppNumber,DATE_FORMAT(insuranceStartDate, '%d %M %Y') AS insuranceStartDate, DATE_FORMAT(insuranceEndDate, '%d %M %Y') AS insuranceEndDate FROM vehicle_registration_details
+                sql_insuranceExpired_getdetails = `SELECT vehicleRegistrationId ,vehicleRegistrationNumber, COALESCE(CONCAT(buyerFirstName,' ', buyerLastname), CONCAT(sellerFirstName,' ', sellerLastName)) AS Name, clientWhatsAppNumber,DATE_FORMAT(insuranceStartDate, '%d %M %Y') AS insuranceStartDate, DATE_FORMAT(insuranceEndDate, '%d %M %Y') AS insuranceEndDate FROM vehicle_registration_details
                                                WHERE agentId = '${agentId}' AND vehicle_registration_details.insuranceEndDate BETWEEN STR_TO_DATE('${firstDay}','%b %d %Y') AND STR_TO_DATE('${lastDay}','%b %d %Y')`;
 
             } else {
 
-                sql_insuranceExpired_getdetails = `SELECT vehicleRegistrationId ,vehicleRegistrationNumber, COALESCE(CONCAT(buyerFirstName, ' ', buyerLastname), CONCAT(sellerFirstName, ' ', sellerLastName)) AS Name, clientWhatsAppNumber,DATE_FORMAT(insuranceStartDate, '%d %M %Y') AS insuranceStartDate, DATE_FORMAT(insuranceEndDate, '%d %M %Y') AS insuranceEndDate FROM vehicle_registration_details
+                sql_insuranceExpired_getdetails = `SELECT vehicleRegistrationId ,vehicleRegistrationNumber, COALESCE(CONCAT(buyerFirstName,' ', buyerLastname), CONCAT(sellerFirstName,' ', sellerLastName)) AS Name, clientWhatsAppNumber,DATE_FORMAT(insuranceStartDate, '%d %M %Y') AS insuranceStartDate, DATE_FORMAT(insuranceEndDate, '%d %M %Y') AS insuranceEndDate FROM vehicle_registration_details
                                                WHERE agentId = '${agentId}' AND vehicle_registration_details.insuranceEndDate = STR_TO_DATE('${today}','%b %d %Y')`;
             }
 
