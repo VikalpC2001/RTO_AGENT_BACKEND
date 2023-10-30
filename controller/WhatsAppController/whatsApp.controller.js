@@ -359,7 +359,7 @@ const autoMessageOnExpired = async (req, res) => {
         'Content-Type': "application/json"
       }
     })
-    return res.sendStatus(200).send('msg Send Success');
+    return res.status(200).send('msg Send Success');
   } catch (error) {
     console.error({ error })
     return res.sendStatus(500);
