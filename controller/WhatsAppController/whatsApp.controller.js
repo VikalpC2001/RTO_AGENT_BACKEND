@@ -376,7 +376,7 @@ const autoMessageOnExpired = async (req, res) => {
       try {
         await axios({
           method: "POST",
-          url: `https://graph.facebook.com/v16.0/${phoneNumber}/messages/`,
+          url: `https://graph.facebook.com/v16.0/${phoneNumberId}/messages/`,
           data: { "messaging_product": "whatsapp", "to": phoneNumber, "type": "template", "template": { "name": "hello_world", "language": { "code": "en_US" } } },
           headers: {
             'Authorization': 'Bearer ' + token,
