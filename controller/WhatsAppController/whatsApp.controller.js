@@ -351,24 +351,15 @@ const autoMessageOnExpired = async (req, res) => {
     await axios({
       method: "POST",
       url: `https://graph.facebook.com/v16.0/${phoneNumberId}/messages/`,
-      data: {
-        "messaging_product": "whatsapp",
-        "recipient_type": "individual",
-        "to": "919898266144",
-        "type": "template",
-        "template": {
-          "name": "hello_world",
-          "language": {
-            "code": "en-US"
-          }
-        }
-      },
+      data:
+        { "messaging_product": "whatsapp", "to": "", "type": "template", "template": { "name": "hello_world", "language": { "code": "en_US" } } }
+      ,
       headers: {
         'Authorization': 'Bearer ' + token,
         'Content-Type': "application/json"
       }
     })
-
+    return res.sendStatus(200).send('msg Send Success');
   } catch (error) {
     console.error({ error })
     return res.sendStatus(500);
