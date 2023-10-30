@@ -352,7 +352,7 @@ const autoMessageOnExpired = async (req, res) => {
       method: "POST",
       url: `https://graph.facebook.com/v16.0/${phoneNumberId}/messages/`,
       data:
-        { "messaging_product": "whatsapp", "to": "", "type": "template", "template": { "name": "hello_world", "language": { "code": "en_US" } } }
+        { "messaging_product": "whatsapp", "to": "919898266144", "type": "template", "template": { "name": "hello_world", "language": { "code": "en_US" } } }
       ,
       headers: {
         'Authorization': 'Bearer ' + token,
