@@ -369,67 +369,102 @@ const sendReceiptOnWapp = (req, res) => {
 //   }
 // }
 
-const autoMessageOnExpired = async (req, res) => {
+const autoMessageOnExpired = (req, res) => {
   try {
-    const phoneNumbers = ['919898266144', '919825312229'];
-    await Promise.all(phoneNumbers.map(async (phoneNumber) => {
-      try {
-        await axios({
-          method: "POST",
-          url: `https://graph.facebook.com/v16.0/${phoneNumberId}/messages/`,
-          data: {
-            "messaging_product": "whatsapp",
-            "recipient_type": "individual",
-            "to": phoneNumber,
-            "type": "template",
-            "template": {
-              "name": "guj_msg_update",
-              "language": {
-                "code": "gu"
-              },
-              "components": [
-                {
-                  "type": "header",
-                  "parameters": [
-                    {
-                      "type": "document",
-                      "document": {
-                        "link": "https://drive.google.com/uc?export=view&id=1tppZUcRbSXJ-dJp60BkC4nIIkJFqahlN",
-                        "filename": "GJ03JD1111"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "type": "body",
-                  "parameters": [
-                    {
-                      "type": "text",
-                      "text": "GJ03JD1111"
-                    },
-                    {
-                      "type": "text",
-                      "text": "GJ03JD1111"
-                    },
-                    {
-                      "type": "text",
-                      "text": "GJ03JD1111"
-                    },
-                  ]
-                }
-              ]
-            }
-          },
-          headers: {
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': "application/json"
-          }
-        })
-      } catch (error) {
-        console.error(`Error sending message to ${phoneNumber}: ${error}`);
+    const sql_query_getExpiredInsuranceData = `SELECT
+                                          vehicleRegistrationNumber,
+                                          COALESCE(
+                                              CONCAT(
+                                                  buyerFirstName,
+                                                  ' ',
+                                                  buyerLastname
+                                              ),
+                                              CONCAT(
+                                                  sellerFirstName,
+                                                  ' ',
+                                                  sellerLastName
+                                              )
+                                          ) AS NAME,
+                                          vehicleMake,
+                                          vehicleModel,
+                                          insurance_data.insuranceCompanyName AS insCompanyName,
+                                          DATE_FORMAT(insuranceEndDate,'%d-%b-%Y') AS insExpDate,
+                                          clientWhatsAppNumber AS wappNumber
+                                      FROM
+                                          vehicle_registration_details
+                                      INNER JOIN insurance_data ON insurance_data.insuranceId = vehicle_registration_details.insuranceCompanyNameId
+                                      WHERE agentId = 'Agent_1684849790536_li0c2amg' AND vehicle_registration_details.insuranceEndDate = CURDATE()`;
+    pool.query(sql_query_getExpiredInsuranceData, async (err, resultData) => {
+      if (err) {
+        console.error("An error occurd in SQL Queery", err);
+        return res.status(500).send('Database Error');
       }
-    }));
-    return res.status(200).send('Messages sent successfully');
+      const insExpData = Object.values(JSON.parse(JSON.stringify(resultData)));
+      console.log(insExpData)
+      await Promise.all(insExpData.map(async (e) => {
+        try {
+          await axios({
+            method: "POST",
+            url: `https://graph.facebook.com/v16.0/${phoneNumberId}/messages/`,
+            data: {
+              "messaging_product": "whatsapp",
+              "recipient_type": "individual",
+              "to": "91" + e.wappNumber,
+              "type": "template",
+              "template": {
+                "name": "insexp_alert",
+                "language": {
+                  "code": "gu"
+                },
+                "components": [
+                  {
+                    "type": "header",
+                    "parameters": [
+                      {
+                        "type": "text",
+                        "text": e.NAME
+                      }
+                    ]
+                  },
+                  {
+                    "type": "body",
+                    "parameters": [
+                      {
+                        "type": "text",
+                        "text": e.vehicleRegistrationNumber
+                      },
+                      {
+                        "type": "text",
+                        "text": e.vehicleMake
+                      },
+                      {
+                        "type": "text",
+                        "text": e.vehicleModel
+                      },
+                      {
+                        "type": "text",
+                        "text": e.insCompanyName
+                      },
+                      {
+                        "type": "text",
+                        "text": e.insExpDate
+                      },
+                    ]
+                  }
+                ]
+              }
+            },
+            headers: {
+              'Authorization': 'Bearer ' + token,
+              'Content-Type': "application/json"
+            }
+          })
+        } catch (error) {
+          console.error(`Error sending message to ${phoneNumber}: ${error}`);
+        }
+      }));
+      return res.status(200).send('Messages sent successfully');
+    })
   } catch (error) {
     console.error({ error });
     return res.sendStatus(500);
