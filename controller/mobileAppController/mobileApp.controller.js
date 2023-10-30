@@ -15,7 +15,8 @@ const getBookList = async (req, res) => {
             const data = {
                 workStatus: req.query.workStatus,
                 workCategory: req.query.workCategory,
-                searchWord: req.query.searchWord
+                searchWord: req.query.searchWord,
+                lastUpdate: req.query.lastUpdate
             }
 
             if (req.query.workStatus && req.query.searchWord) {
@@ -56,6 +57,13 @@ const getBookList = async (req, res) => {
                              FROM vehicle_registration_details
                              LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
                              WHERE vehicle_registration_details.agentId = '${agentId}' AND vehicleRegistrationNumber LIKE'%` + data.searchWord + `%'
+                             ORDER BY RIGHT(vehicleRegistrationNumber,4)`;
+
+            } else if (req.query.lastUpdate == '1') {
+                sql_Book_List = `SELECT vehicleRegistrationId, UPPER(vehicleRegistrationNumber) As vehicleRegistrationNumber, COALESCE(dealer_details.dealerDisplayName,privateCustomerName) AS "Dealer/Customer"
+                             FROM vehicle_registration_details
+                             LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
+                             WHERE vehicle_registration_details.agentId = '${agentId}' AND vehicleRegistrationCreationDate = (SELECT MAX(vehicleRegistrationCreationDate) FROM vehicle_registration_details WHERE agentId = '${agentId}')
                              ORDER BY RIGHT(vehicleRegistrationNumber,4)`;
 
             } else {

@@ -1,5 +1,6 @@
 const mysql = require('mysql');
 const pool = require('../../database');
+const jwt = require("jsonwebtoken");
 const { generateToken } = require('../../utils/genrateToken');
 
 const getAgentDetails = async (req, res) => {
@@ -140,11 +141,24 @@ const updateAgentDetails = async (req, res) => {
 }
 
 const authUser = async (req, res) => {
-    // res.setHeader("Access-Control-Allow-Origin", "*");
-    // res.header(
-    //   "Access-Control-Allow-Headers",
-    //   "Origin, X-Requested-With, Content-Type, Accept"
-    // );
+
+    function getCurrentDate() {
+        const now = new Date();
+        const hours = now.getHours();
+        console.log(hours, hours >= 1);
+
+        if (hours <= 2) { // If it's 2 AM or later, increment the date
+            now.setDate(now.getDate() - 1);
+        }
+
+        return now.toDateString();
+    }
+
+    const currentDate = getCurrentDate();
+    console.log(currentDate);
+
+
+
     const user = {
         agentEmailId: req.body.agentEmailId,
         agentPassword: req.body.agentPassword
@@ -170,10 +184,38 @@ const authUser = async (req, res) => {
     })
 }
 
+const CheckJwtTokenExpiredOrNot = (req, res) => {
+    try {
+        let token;
+        token = req.headers.authorization.split(" ")[1];
+
+        // Verify the token with your secret key
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        // If the token is successfully verified, you can check the expiration time
+        const tokenExpirationTime = new Date(decoded.exp * 1000); // Convert seconds to milliseconds
+        const currentTime = new Date();
+
+        if (currentTime < tokenExpirationTime) {
+            // Token is still valid
+            console.log('Token is not expired.');
+            return res.status(200).send(true);
+        } else {
+            // Token has expired
+            console.log('Token has expired.');
+            return res.status(200).send(false);
+        }
+    } catch (error) {
+        console.log('JWT Expired')
+        return res.status(500).send(false);
+    }
+}
+
 module.exports = {
     addAgentDetails,
     getAgentDetails,
     removeAgentDetails,
     updateAgentDetails,
-    authUser
+    authUser,
+    CheckJwtTokenExpiredOrNot
 }

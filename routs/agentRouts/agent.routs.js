@@ -9,5 +9,6 @@ router.post('/addAgentDetails', protect, agentController.addAgentDetails);
 router.post('/removeAgentDetails', protect, agentController.removeAgentDetails);
 router.post('/updateAgentDetails', protect, agentController.updateAgentDetails);
 router.post('/authUser', agentController.authUser);
+router.get('/CheckJwtTokenExpiredOrNot', agentController.CheckJwtTokenExpiredOrNot);
 
 module.exports = router;
