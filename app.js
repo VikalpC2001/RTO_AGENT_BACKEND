@@ -16,6 +16,24 @@ const fs = require('fs');
 const app = express()
 const port = process.env.PORT
 
+const axios = require('axios');
+const cron = require('node-cron');
+
+// Define your API endpoint
+const apiUrl = 'http://localhost:8003/api/whatsApprouter/autoMessageOnExpired';
+
+// Schedule the API call every minute
+cron.schedule('0 6 * * *', () => {
+  axios.get(apiUrl)
+    .then((response) => {
+      console.log('API call successful:', response.data);
+    })
+    .catch((error) => {
+      console.error('API call failed:', error);
+    });
+});
+
+
 
 app.use(cors());
 

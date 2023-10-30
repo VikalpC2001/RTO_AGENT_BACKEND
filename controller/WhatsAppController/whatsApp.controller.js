@@ -346,4 +346,33 @@ const sendReceiptOnWapp = (req, res) => {
   })
 }
 
-module.exports = { sendReceipte, meta_wa_callbackurl, getWhtsappMsgData, sendReceiptOnWapp };
+const autoMessageOnExpired = async (req, res) => {
+  try {
+    await axios({
+      method: "POST",
+      url: `https://graph.facebook.com/v16.0/${phoneNumberId}/messages/`,
+      data: {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": "919898266144",
+        "type": "template",
+        "template": {
+          "name": "hello_world",
+          "language": {
+            "code": "en-US"
+          }
+        }
+      },
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': "application/json"
+      }
+    })
+
+  } catch (error) {
+    console.error({ error })
+    return res.sendStatus(500);
+  }
+}
+
+module.exports = { sendReceipte, meta_wa_callbackurl, getWhtsappMsgData, sendReceiptOnWapp, autoMessageOnExpired };
