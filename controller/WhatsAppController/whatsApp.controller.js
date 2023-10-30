@@ -377,17 +377,58 @@ const autoMessageOnExpired = async (req, res) => {
         await axios({
           method: "POST",
           url: `https://graph.facebook.com/v16.0/${phoneNumberId}/messages/`,
-          data: { "messaging_product": "whatsapp", "to": phoneNumber, "type": "template", "template": { "name": "hello_world", "language": { "code": "en_US" } } },
+          data: {
+            "messaging_product": "whatsapp",
+            "recipient_type": "individual",
+            "to": phoneNumber,
+            "type": "template",
+            "template": {
+              "name": "guj_msg_update",
+              "language": {
+                "code": "gu"
+              },
+              "components": [
+                {
+                  "type": "header",
+                  "parameters": [
+                    {
+                      "type": "document",
+                      "document": {
+                        "link": "https://drive.google.com/uc?export=view&id=1tppZUcRbSXJ-dJp60BkC4nIIkJFqahlN",
+                        "filename": "GJ03JD1111"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "body",
+                  "parameters": [
+                    {
+                      "type": "text",
+                      "text": "GJ03JD1111"
+                    },
+                    {
+                      "type": "text",
+                      "text": "GJ03JD1111"
+                    },
+                    {
+                      "type": "text",
+                      "text": "GJ03JD1111"
+                    },
+                  ]
+                }
+              ]
+            }
+          },
           headers: {
             'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/json'
+            'Content-Type': "application/json"
           }
-        });
+        })
       } catch (error) {
         console.error(`Error sending message to ${phoneNumber}: ${error}`);
       }
     }));
-
     return res.status(200).send('Messages sent successfully');
   } catch (error) {
     console.error({ error });
