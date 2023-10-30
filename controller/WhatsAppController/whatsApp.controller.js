@@ -371,21 +371,13 @@ const sendReceiptOnWapp = (req, res) => {
 
 const autoMessageOnExpired = async (req, res) => {
   try {
-    const phoneNumbers = ['919898266144', '919898266144'];
+    const phoneNumbers = ['919898266144', '919825312229'];
     await Promise.all(phoneNumbers.map(async (phoneNumber) => {
       try {
         await axios({
           method: "POST",
           url: `https://graph.facebook.com/v16.0/${phoneNumber}/messages/`,
-          data: {
-            "messaging_product": "whatsapp",
-            "to": phoneNumber,
-            "type": "template",
-            "template": {
-              "name": "hello_world",
-              "language": { "code": "en_US" }
-            }
-          },
+          data: { "messaging_product": "whatsapp", "to": phoneNumber, "type": "template", "template": { "name": "hello_world", "language": { "code": "en_US" } } },
           headers: {
             'Authorization': 'Bearer ' + token,
             'Content-Type': 'application/json'
