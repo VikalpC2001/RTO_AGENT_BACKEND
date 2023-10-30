@@ -346,59 +346,26 @@ const sendReceiptOnWapp = (req, res) => {
   })
 }
 
-// const autoMessageOnExpired = async (req, res) => {
-//   try {
-//     const phoneNumberIds = ['919898266144', '919825312229'];
-//     await axios({
-//       method: "POST",
-//       url: `https://graph.facebook.com/v16.0/${phoneNumberId}/messages/`,
-//       data:
-//         { "messaging_product": "whatsapp", "to": "919898266144", "type": "template", "template": { "name": "hello_world", "language": { "code": "en_US" } } }
-//       ,
-//       headers: {
-//         'Authorization': 'Bearer ' + token,
-//         'Content-Type': "application/json"
-//       }
-//     })
-//     return res.status(200).send('msg Send Success');
-//   } catch (error) {
-//     console.error({ error })
-//     return res.sendStatus(500);
-//   }
-// }
-
 const autoMessageOnExpired = async (req, res) => {
   try {
-    const successResponses = [];
-    const errorResponses = [];
-    const phoneNumberIds = ['919898266144', '919825312229'];
-    for (const phoneNumberId of phoneNumberIds) {
-      // Modify the data to send messages to different phone numbers
-      const messageData = { "messaging_product": "whatsapp", "to": phoneNumberId, "type": "template", "template": { "name": "hello_world", "language": { "code": "en_US" } } };
-
-      const response = await axios({
-        method: 'POST',
-        url: `https://graph.facebook.com/v16.0/${phoneNumberId}/messages/`,
-        data: messageData,
-        headers: {
-          Authorization: 'Bearer ' + token,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      successResponses.push(response.data);
-    }
-
-    // You can handle the success and error responses as needed
-    return res.status(200).json({
-      success: successResponses,
-      error: errorResponses,
-    });
+    const phoneNumber = req.query.phoneNumber
+    await axios({
+      method: "POST",
+      url: `https://graph.facebook.com/v16.0/${phoneNumberId}/messages/`,
+      data:
+        { "messaging_product": "whatsapp", "to": phoneNumber, "type": "template", "template": { "name": "hello_world", "language": { "code": "en_US" } } }
+      ,
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': "application/json"
+      }
+    })
+    return res.status(200).send('msg Send Success');
   } catch (error) {
-    console.error({ error });
+    console.error({ error })
     return res.sendStatus(500);
   }
-};
+}
 
 
 module.exports = { sendReceipte, meta_wa_callbackurl, getWhtsappMsgData, sendReceiptOnWapp, autoMessageOnExpired };
