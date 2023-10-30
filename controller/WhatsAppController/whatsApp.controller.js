@@ -374,15 +374,7 @@ const autoMessageOnExpired = async (req, res) => {
     const phoneNumberIds = ['919898266144', '919825312229'];
     for (const phoneNumberId of phoneNumberIds) {
       // Modify the data to send messages to different phone numbers
-      const messageData = {
-        messaging_product: 'whatsapp',
-        to: phoneNumberId,
-        type: 'template',
-        template: {
-          name: 'hello_world',
-          language: { code: 'en_US' },
-        },
-      };
+      const messageData = { "messaging_product": "whatsapp", "to": phoneNumberId, "type": "template", "template": { "name": "hello_world", "language": { "code": "en_US" } } };
 
       const response = await axios({
         method: 'POST',
