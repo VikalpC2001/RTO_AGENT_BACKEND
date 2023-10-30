@@ -401,69 +401,73 @@ const autoMessageOnExpired = (req, res) => {
       }
       const insExpData = Object.values(JSON.parse(JSON.stringify(resultData)));
       console.log(insExpData)
-      await Promise.all(insExpData.map(async (e) => {
-        try {
-          await axios({
-            method: "POST",
-            url: `https://graph.facebook.com/v16.0/${phoneNumberId}/messages/`,
-            data: {
-              "messaging_product": "whatsapp",
-              "recipient_type": "individual",
-              "to": "91" + e.wappNumber,
-              "type": "template",
-              "template": {
-                "name": "insexp_alert",
-                "language": {
-                  "code": "gu"
-                },
-                "components": [
-                  {
-                    "type": "header",
-                    "parameters": [
-                      {
-                        "type": "text",
-                        "text": e.NAME
-                      }
-                    ]
+      if (insExpData.length == 0) {
+        return res.status(404).send('Messages Not Found');
+      } else {
+        await Promise.all(insExpData.map(async (e) => {
+          try {
+            await axios({
+              method: "POST",
+              url: `https://graph.facebook.com/v16.0/${phoneNumberId}/messages/`,
+              data: {
+                "messaging_product": "whatsapp",
+                "recipient_type": "individual",
+                "to": "91" + e.wappNumber,
+                "type": "template",
+                "template": {
+                  "name": "insexp_alert",
+                  "language": {
+                    "code": "gu"
                   },
-                  {
-                    "type": "body",
-                    "parameters": [
-                      {
-                        "type": "text",
-                        "text": e.vehicleRegistrationNumber
-                      },
-                      {
-                        "type": "text",
-                        "text": e.vehicleMake
-                      },
-                      {
-                        "type": "text",
-                        "text": e.vehicleModel
-                      },
-                      {
-                        "type": "text",
-                        "text": e.insCompanyName
-                      },
-                      {
-                        "type": "text",
-                        "text": e.insExpDate
-                      },
-                    ]
-                  }
-                ]
+                  "components": [
+                    {
+                      "type": "header",
+                      "parameters": [
+                        {
+                          "type": "text",
+                          "text": e.NAME
+                        }
+                      ]
+                    },
+                    {
+                      "type": "body",
+                      "parameters": [
+                        {
+                          "type": "text",
+                          "text": e.vehicleRegistrationNumber
+                        },
+                        {
+                          "type": "text",
+                          "text": e.vehicleMake
+                        },
+                        {
+                          "type": "text",
+                          "text": e.vehicleModel
+                        },
+                        {
+                          "type": "text",
+                          "text": e.insCompanyName
+                        },
+                        {
+                          "type": "text",
+                          "text": e.insExpDate
+                        },
+                      ]
+                    }
+                  ]
+                }
+              },
+              headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': "application/json"
               }
-            },
-            headers: {
-              'Authorization': 'Bearer ' + token,
-              'Content-Type': "application/json"
-            }
-          })
-        } catch (error) {
-          console.error(`Error sending message to ${phoneNumber}: ${error}`);
-        }
-      }));
-      return res.status(200).send('Messages sent successfully');
+            })
+          } catch (error) {
+            console.error(`Error sending message to ${phoneNumber}: ${error}`);
+          }
+        }));
+        return res.status(200).send('Messages sent successfully');
+      }
     })
   } catch (error) {
     console.error({ error });
