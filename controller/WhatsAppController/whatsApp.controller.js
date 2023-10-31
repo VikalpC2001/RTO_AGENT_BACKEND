@@ -192,7 +192,7 @@ const sendReceipte = asyncHandler(async (req, res) => {
     })
   } catch (error) {
     console.error({ error })
-    return res.sendStatus(500);
+    return res.status(500).send('Internal Server Error');
   }
 })
 
@@ -340,7 +340,7 @@ const sendReceiptOnWapp = (req, res) => {
       })
     } catch (error) {
       console.error({ error })
-      return res.sendStatus(500);
+      return res.Status(500).send('Internal Server Error');
     }
 
   })
@@ -393,7 +393,7 @@ const autoMessageOnExpired = (req, res) => {
                                       FROM
                                           vehicle_registration_details
                                       INNER JOIN insurance_data ON insurance_data.insuranceId = vehicle_registration_details.insuranceCompanyNameId
-                                      WHERE agentId = 'Agent_1684849790536_li0c2amg' AND vehicle_registration_details.insuranceEndDate = CURDATE()`;
+                                      WHERE agentId = 'Agent_1676117009463_ldzwshmf' AND vehicle_registration_details.insuranceEndDate = CURDATE()`;
     pool.query(sql_query_getExpiredInsuranceData, async (err, resultData) => {
       if (err) {
         console.error("An error occurd in SQL Queery", err);
@@ -471,7 +471,7 @@ const autoMessageOnExpired = (req, res) => {
     })
   } catch (error) {
     console.error({ error });
-    return res.sendStatus(500);
+    return res.status(500).send('Internal Server Error');
   }
 }
 
@@ -481,7 +481,7 @@ const customInsuranceExpiredAlert = (req, res) => {
     return res.status(200).send(`Messages sent successfully on ${vehicalRegistrationId}`);
   } catch (error) {
     console.error({ error });
-    return res.sendStatus(500);
+    return res.status(500).send('Internal Server Error');
   }
 }
 
