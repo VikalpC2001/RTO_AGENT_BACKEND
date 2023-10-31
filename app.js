@@ -21,7 +21,7 @@ const cron = require('node-cron');
 // Define your API endpoint
 const apiUrl = 'https://rtoagentdms.com/api/whatsApprouter/autoMessageOnExpired';
 
-// Schedule the API call every minute
+// Schedule the API call every Morning 6 AM
 cron.schedule('0 6 * * *', () => {
   axios.get(apiUrl)
     .then((response) => {
@@ -31,8 +31,6 @@ cron.schedule('0 6 * * *', () => {
       console.error('API call failed:', error);
     });
 });
-
-
 
 app.use(cors());
 
