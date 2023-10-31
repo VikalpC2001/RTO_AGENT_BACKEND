@@ -402,7 +402,7 @@ const autoMessageOnExpired = (req, res) => {
       const insExpData = Object.values(JSON.parse(JSON.stringify(resultData)));
       console.log(insExpData)
       if (insExpData.length == 0) {
-        return res.status(404).send('Messages Not Found');
+        return res.status(200).send('Messages Not Found');
       } else {
         await Promise.all(insExpData.map(async (e) => {
           try {
