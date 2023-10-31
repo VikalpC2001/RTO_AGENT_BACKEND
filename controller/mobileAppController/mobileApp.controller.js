@@ -220,13 +220,15 @@ const getInsuranceExpiredBookList = async (req, res) => {
             }
             if (req.query.apiNumber === '1') {
 
-                sql_insuranceExpired_getdetails = `SELECT vehicleRegistrationId ,vehicleRegistrationNumber, COALESCE(CONCAT(buyerFirstName,' ', buyerLastname), CONCAT(sellerFirstName,' ', sellerLastName)) AS Name, clientWhatsAppNumber,DATE_FORMAT(insuranceStartDate, '%d %M %Y') AS insuranceStartDate, DATE_FORMAT(insuranceEndDate, '%d %M %Y') AS insuranceEndDate FROM vehicle_registration_details
-                                               WHERE agentId = '${agentId}' AND vehicle_registration_details.insuranceEndDate BETWEEN STR_TO_DATE('${firstDay}','%b %d %Y') AND STR_TO_DATE('${lastDay}','%b %d %Y')`;
+                sql_insuranceExpired_getdetails = `SELECT vehicleRegistrationId ,vehicleRegistrationNumber, COALESCE(CONCAT(buyerFirstName,' ', buyerLastname), CONCAT(sellerFirstName,' ', sellerLastName)) AS Name, clientWhatsAppNumber, insuranceType, insurance_data.insuranceCompanyName, DATE_FORMAT(insuranceStartDate, '%d %M %Y') AS insuranceStartDate, DATE_FORMAT(insuranceEndDate, '%d %M %Y') AS insuranceEndDate FROM vehicle_registration_details
+                                                    LEFT JOIN insurance_data ON insurance_data.insuranceId = vehicle_registration_details.insuranceCompanyNameId
+                                                    WHERE agentId = '${agentId}' AND vehicle_registration_details.insuranceEndDate BETWEEN STR_TO_DATE('${firstDay}','%b %d %Y') AND STR_TO_DATE('${lastDay}','%b %d %Y')`;
 
             } else {
 
-                sql_insuranceExpired_getdetails = `SELECT vehicleRegistrationId ,vehicleRegistrationNumber, COALESCE(CONCAT(buyerFirstName,' ', buyerLastname), CONCAT(sellerFirstName,' ', sellerLastName)) AS Name, clientWhatsAppNumber,DATE_FORMAT(insuranceStartDate, '%d %M %Y') AS insuranceStartDate, DATE_FORMAT(insuranceEndDate, '%d %M %Y') AS insuranceEndDate FROM vehicle_registration_details
-                                               WHERE agentId = '${agentId}' AND vehicle_registration_details.insuranceEndDate = STR_TO_DATE('${today}','%b %d %Y')`;
+                sql_insuranceExpired_getdetails = `SELECT vehicleRegistrationId ,vehicleRegistrationNumber, COALESCE(CONCAT(buyerFirstName,' ', buyerLastname), CONCAT(sellerFirstName,' ', sellerLastName)) AS Name, clientWhatsAppNumber, insuranceType, insurance_data.insuranceCompanyName, DATE_FORMAT(insuranceStartDate, '%d %M %Y') AS insuranceStartDate, DATE_FORMAT(insuranceEndDate, '%d %M %Y') AS insuranceEndDate FROM vehicle_registration_details
+                                                    LEFT JOIN insurance_data ON insurance_data.insuranceId = vehicle_registration_details.insuranceCompanyNameId
+                                                    WHERE agentId = '${agentId}' AND vehicle_registration_details.insuranceEndDate = CURDATE()`;
             }
 
             pool.query(sql_insuranceExpired_getdetails, (err, rows) => {
