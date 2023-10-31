@@ -434,7 +434,7 @@ const getVehicleRegistrationDetailsById = async (req, res) => {
                                              FROM vehicle_registration_details
                                              WHERE vehicleRegistrationId = '${data.vehicleRegistrationId}';
                                       SELECT CONCAT(buyerFirstName," ",buyerLastName) AS "Buyer Name", buyerMiddleName AS "Son / Daughter / Wife of",
-                                             buyerAddressLine1 AS "House No & Street Name", buyerAddressLine2 AS "Landmark / Police Station", buyerAddressLine3 AS "Village/Town/City", CONCAT(city_data.cityName,", ",state_data.stateName) AS "City/State", buyerPincode AS "Pincode"
+                                             buyerAddressLine1 AS "House No & Street No", buyerAddressLine2 AS "Landmark", buyerAddressLine3 AS "Village/Town/City", CONCAT(city_data.cityName,", ",state_data.stateName) AS "City/State", buyerPincode AS "Pincode"
                                              FROM vehicle_registration_details
                                              INNER JOIN city_data ON city_data.cityId = vehicle_registration_details.buyerCity
                                              INNER JOIN state_data ON state_data.stateId = vehicle_registration_details.buyerState
