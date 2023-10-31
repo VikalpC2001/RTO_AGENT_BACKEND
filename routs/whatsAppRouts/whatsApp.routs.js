@@ -7,6 +7,7 @@ router.get('/meta_wa_callbackurl', whatsAppController.meta_wa_callbackurl);
 router.post('/sendReceipte', whatsAppController.sendReceipte);
 router.get('/sendReceiptOnWapp', whatsAppController.sendReceiptOnWapp);
 router.get('/autoMessageOnExpired', whatsAppController.autoMessageOnExpired);
+router.get('/customInsuranceExpiredAlert', whatsAppController.customInsuranceExpiredAlert);
 
 'use strict';
 // const router = require('express').Router();

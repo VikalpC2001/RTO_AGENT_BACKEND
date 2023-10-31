@@ -475,4 +475,14 @@ const autoMessageOnExpired = (req, res) => {
   }
 }
 
-module.exports = { sendReceipte, meta_wa_callbackurl, getWhtsappMsgData, sendReceiptOnWapp, autoMessageOnExpired };
+const customInsuranceExpiredAlert = (req, res) => {
+  try {
+    const vehicalRegistrationId = req.query.vehicalRegistrationId;
+    return res.status(200).send(`Messages sent successfully on ${vehicalRegistrationId}`);
+  } catch (error) {
+    console.error({ error });
+    return res.sendStatus(500);
+  }
+}
+
+module.exports = { sendReceipte, meta_wa_callbackurl, getWhtsappMsgData, sendReceiptOnWapp, autoMessageOnExpired, customInsuranceExpiredAlert };
