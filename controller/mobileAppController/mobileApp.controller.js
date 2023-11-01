@@ -222,13 +222,15 @@ const getInsuranceExpiredBookList = async (req, res) => {
 
                 sql_insuranceExpired_getdetails = `SELECT vehicleRegistrationId ,vehicleRegistrationNumber, COALESCE(CONCAT(buyerFirstName,' ', buyerLastname), CONCAT(sellerFirstName,' ', sellerLastName)) AS Name, clientWhatsAppNumber, insuranceType, insurance_data.insuranceCompanyName, DATE_FORMAT(insuranceStartDate, '%d %M %Y') AS insuranceStartDate, DATE_FORMAT(insuranceEndDate, '%d %M %Y') AS insuranceEndDate FROM vehicle_registration_details
                                                     LEFT JOIN insurance_data ON insurance_data.insuranceId = vehicle_registration_details.insuranceCompanyNameId
-                                                    WHERE agentId = '${agentId}' AND vehicle_registration_details.insuranceEndDate BETWEEN STR_TO_DATE('${firstDay}','%b %d %Y') AND STR_TO_DATE('${lastDay}','%b %d %Y')`;
+                                                    WHERE agentId = '${agentId}' AND vehicle_registration_details.insuranceEndDate BETWEEN STR_TO_DATE('${firstDay}','%b %d %Y') AND STR_TO_DATE('${lastDay}','%b %d %Y')
+                                                    ORDER BY vehicle_registration_details.insuranceEndDate ASC`;
 
             } else {
 
                 sql_insuranceExpired_getdetails = `SELECT vehicleRegistrationId ,vehicleRegistrationNumber, COALESCE(CONCAT(buyerFirstName,' ', buyerLastname), CONCAT(sellerFirstName,' ', sellerLastName)) AS Name, clientWhatsAppNumber, insuranceType, insurance_data.insuranceCompanyName, DATE_FORMAT(insuranceStartDate, '%d %M %Y') AS insuranceStartDate, DATE_FORMAT(insuranceEndDate, '%d %M %Y') AS insuranceEndDate FROM vehicle_registration_details
                                                     LEFT JOIN insurance_data ON insurance_data.insuranceId = vehicle_registration_details.insuranceCompanyNameId
-                                                    WHERE agentId = '${agentId}' AND vehicle_registration_details.insuranceEndDate = CURDATE()`;
+                                                    WHERE agentId = '${agentId}' AND vehicle_registration_details.insuranceEndDate = CURDATE()
+                                                    ORDER BY vehicle_registration_details.insuranceEndDate ASC`;
             }
 
             pool.query(sql_insuranceExpired_getdetails, (err, rows) => {
