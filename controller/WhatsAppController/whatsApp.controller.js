@@ -5,6 +5,7 @@ const pool = require('../../database');
 require('dotenv').config();
 const token = process.env.Meta_WA_accessToken;
 const phoneNumberId = process.env.Meta_WA_SenderPhoneNumberId;
+const FRONT_URL = `https://admin.bhagwatifastfood.com/api/`;
 
 const meta_wa_callbackurl = (req, res) => {
   console.log(">>>")
@@ -41,7 +42,7 @@ const getWhtsappMsgData = async (req, res) => {
 
   const receiptId = res.locals.id;
   console.log("local2", receiptId);
-  const sql_getMsg_data = `SELECT UPPER(vehicle_registration_details.vehicleRegistrationNumber) AS vehicleRegistrationNumber, COALESCE(dealer_details.dealerFirmName,privateCustomerName) AS "Dealer/Customer", dealer_details.dealerWhatsAppNumber, rto_receipt_data.receiptURL as URL, vehicle_registration_details.clientWhatsAppNumber, DATE_FORMAT(appointmentDate, '%d-%M-%Y') AS appointmentDate FROM rto_receipt_data
+  const sql_getMsg_data = `SELECT UPPER(vehicle_registration_details.vehicleRegistrationNumber) AS vehicleRegistrationNumber, COALESCE(dealer_details.dealerFirmName,privateCustomerName) AS "Dealer/Customer", dealer_details.dealerWhatsAppNumber, rto_receipt_data.receiptGoogleDriveId as driveId, vehicle_registration_details.clientWhatsAppNumber, DATE_FORMAT(appointmentDate, '%d-%M-%Y') AS appointmentDate FROM rto_receipt_data
                               LEFT JOIN vehicle_registration_details ON vehicle_registration_details.vehicleRegistrationId = rto_receipt_data.vehicleRegistrationId
                               LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
                               WHERE rto_receipt_data.receiptId = '${receiptId}'`;
@@ -57,7 +58,7 @@ const sendReceipte = asyncHandler(async (req, res) => {
 
     const receiptId = res.locals.id;
     console.log("local2", receiptId);
-    const sql_getMsg_data = `SELECT UPPER(vehicle_registration_details.vehicleRegistrationNumber) AS vehicleRegistrationNumber, UPPER(vehicle_registration_details.vehicleMake) AS vehicleMake ,UPPER(vehicle_registration_details.vehicleModel) AS vehicleModel,COALESCE(dealer_details.dealerFirmName,privateCustomerName) AS "Dealer/Customer", dealer_details.dealerWhatsAppNumber AS dealerWhatsappNumber, rto_receipt_data.receiptURL as URL, vehicle_registration_details.clientWhatsAppNumber AS clientWhatsAppNumber FROM rto_receipt_data
+    const sql_getMsg_data = `SELECT UPPER(vehicle_registration_details.vehicleRegistrationNumber) AS vehicleRegistrationNumber, UPPER(vehicle_registration_details.vehicleMake) AS vehicleMake ,UPPER(vehicle_registration_details.vehicleModel) AS vehicleModel,COALESCE(dealer_details.dealerFirmName,privateCustomerName) AS "Dealer/Customer", dealer_details.dealerWhatsAppNumber AS dealerWhatsappNumber, rto_receipt_data.receiptGoogleDriveId as driveId, vehicle_registration_details.clientWhatsAppNumber AS clientWhatsAppNumber FROM rto_receipt_data
                                  LEFT JOIN vehicle_registration_details ON vehicle_registration_details.vehicleRegistrationId = rto_receipt_data.vehicleRegistrationId
                                  LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
                                  WHERE rto_receipt_data.receiptId = '${receiptId}'`;
@@ -66,7 +67,7 @@ const sendReceipte = asyncHandler(async (req, res) => {
       // return res.status(200),
       //        res.json(data);
       const vehicleNumber = data[0].vehicleRegistrationNumber;
-      const pdfURL = `https://drive.google.com/file/d/17Ai4lu43eegaFkT2ys6Z3Pjpn_x4yZ_v/view?usp=drive_link`;
+      const pdfURL = `${FRONT_URL}vehicleRegistrationrouter/getReceiptByGoogleDriveId?fileId=${data && data[0] ? data[0].driveId : ''}`;
       const vehicleMake = data[0].vehicleMake;
       const vehicleModel = data[0].vehicleModel;
       const dealerWhatsappNumber = data[0].dealerWhatsappNumber ? data[0].dealerWhatsappNumber : "9825246338";
@@ -205,7 +206,7 @@ const sendReceiptOnWapp = (req, res) => {
     const receipteId = data[0]['receiptId'];
 
     try {
-      const sql_getMsg_data = `SELECT UPPER(vehicle_registration_details.vehicleRegistrationNumber) AS vehicleRegistrationNumber, UPPER(vehicle_registration_details.vehicleMake) AS vehicleMake ,UPPER(vehicle_registration_details.vehicleModel) AS vehicleModel,COALESCE(dealer_details.dealerFirmName,privateCustomerName) AS "Dealer/Customer", dealer_details.dealerWhatsAppNumber AS dealerWhatsappNumber, rto_receipt_data.receiptURL as URL, vehicle_registration_details.clientWhatsAppNumber AS clientWhatsAppNumber FROM rto_receipt_data
+      const sql_getMsg_data = `SELECT UPPER(vehicle_registration_details.vehicleRegistrationNumber) AS vehicleRegistrationNumber, UPPER(vehicle_registration_details.vehicleMake) AS vehicleMake ,UPPER(vehicle_registration_details.vehicleModel) AS vehicleModel,COALESCE(dealer_details.dealerFirmName,privateCustomerName) AS "Dealer/Customer", dealer_details.dealerWhatsAppNumber AS dealerWhatsappNumber, rto_receipt_data.receiptGoogleDriveId as driveId, vehicle_registration_details.clientWhatsAppNumber AS clientWhatsAppNumber FROM rto_receipt_data
                                  LEFT JOIN vehicle_registration_details ON vehicle_registration_details.vehicleRegistrationId = rto_receipt_data.vehicleRegistrationId
                                  LEFT JOIN dealer_details ON dealer_details.dealerId = vehicle_registration_details.dealerId
                                  WHERE rto_receipt_data.receiptId = '${receipteId}'`;
@@ -214,7 +215,7 @@ const sendReceiptOnWapp = (req, res) => {
         // return res.status(200),
         //        res.json(data);
         const vehicleNumber = data[0].vehicleRegistrationNumber ? data[0].vehicleRegistrationNumber : null;
-        const pdfURL = `https://drive.google.com/file/d/17Ai4lu43eegaFkT2ys6Z3Pjpn_x4yZ_v/view?usp=drive_link`;
+        const pdfURL = `${FRONT_URL}vehicleRegistrationrouter/getReceiptByGoogleDriveId?fileId=${data && data[0] ? data[0].driveId : ''}`;
         const vehicleMake = data[0].vehicleMake ? data[0].vehicleMake : null;
         const vehicleModel = data[0].vehicleModel ? data[0].vehicleModel : null;
         const dealerWhatsappNumber = data[0].dealerWhatsappNumber ? data[0].dealerWhatsappNumber : "9825246338";

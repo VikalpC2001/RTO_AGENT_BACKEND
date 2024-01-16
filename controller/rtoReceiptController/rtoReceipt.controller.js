@@ -8,7 +8,6 @@ const upload = multer({ limits: { fileSize: 5 * 1024 * 1024 } }).any();
 
 const KEYFILEPATH = process.env.GOOGLE_SERVICE;
 const SCOPES = ["https://www.googleapis.com/auth/drive"];
-
 const auth = new google.auth.GoogleAuth({
   keyFile: KEYFILEPATH,
   scopes: SCOPES,
@@ -109,4 +108,35 @@ const uploadFile = async (fileObject) => {
   return data.id;
 };
 
-module.exports = { uploadReceipt };
+const getReceiptByGoogleDriveId = async (req, res) => {
+  try {
+    const fileId = req.query.fileId; // Replace with the actual file ID from Google Drive
+    google.drive({ version: "v3", auth }).files.get(
+      { fileId: fileId, alt: "media", },
+      { responseType: "stream" },
+      async (err, { data }) => {
+        if (err) {
+          console.log(err);
+          return;
+        }
+        let buf = [];
+        data.on("data", (e) => buf.push(e));
+        await data.on("end", () => {
+          const buffer = Buffer.concat(buf);
+          res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': 'inline; filename="example.pdf"',
+            'Content-Length': buffer.length,
+          });
+          // Send the PDF buffer as the response body
+          res.send(buffer);
+        });
+      }
+    );
+  } catch (error) {
+    console.error('Error fetching file content:', error.message);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+module.exports = { uploadReceipt, getReceiptByGoogleDriveId };
