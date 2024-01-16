@@ -66,7 +66,7 @@ const sendReceipte = asyncHandler(async (req, res) => {
       // return res.status(200),
       //        res.json(data);
       const vehicleNumber = data[0].vehicleRegistrationNumber;
-      const pdfURL = data[0].URL;
+      const pdfURL = `https://drive.google.com/file/d/1fNCTzYScnnx64mPsmthisISIiXPjHEV1/view?usp=drive_link`;
       const vehicleMake = data[0].vehicleMake;
       const vehicleModel = data[0].vehicleModel;
       const dealerWhatsappNumber = data[0].dealerWhatsappNumber ? data[0].dealerWhatsappNumber : "9825246338";
@@ -214,7 +214,7 @@ const sendReceiptOnWapp = (req, res) => {
         // return res.status(200),
         //        res.json(data);
         const vehicleNumber = data[0].vehicleRegistrationNumber ? data[0].vehicleRegistrationNumber : null;
-        const pdfURL = data[0].URL;
+        const pdfURL = `https://drive.google.com/file/d/1fNCTzYScnnx64mPsmthisISIiXPjHEV1/view?usp=drive_link`;
         const vehicleMake = data[0].vehicleMake ? data[0].vehicleMake : null;
         const vehicleModel = data[0].vehicleModel ? data[0].vehicleModel : null;
         const dealerWhatsappNumber = data[0].dealerWhatsappNumber ? data[0].dealerWhatsappNumber : "9825246338";

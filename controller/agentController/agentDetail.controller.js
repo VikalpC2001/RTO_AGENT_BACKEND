@@ -141,24 +141,6 @@ const updateAgentDetails = async (req, res) => {
 }
 
 const authUser = async (req, res) => {
-
-    function getCurrentDate() {
-        const now = new Date();
-        const hours = now.getHours();
-        console.log(hours, hours >= 1);
-
-        if (hours <= 2) { // If it's 2 AM or later, increment the date
-            now.setDate(now.getDate() - 1);
-        }
-
-        return now.toDateString();
-    }
-
-    const currentDate = getCurrentDate();
-    console.log(currentDate);
-
-
-
     const user = {
         agentEmailId: req.body.agentEmailId,
         agentPassword: req.body.agentPassword
