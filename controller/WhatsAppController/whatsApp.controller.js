@@ -5,8 +5,7 @@ const pool = require('../../database');
 require('dotenv').config();
 const token = process.env.Meta_WA_accessToken;
 const phoneNumberId = process.env.Meta_WA_SenderPhoneNumberId;
-const FRONT_URL = `https://admin.bhagwatifastfood.com/api/`;
-
+const FRONT_URL = `https://rtoagentdms.com/api/`;
 const meta_wa_callbackurl = (req, res) => {
   console.log(">>>")
   try {
